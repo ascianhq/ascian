@@ -1,0 +1,609 @@
+/* ascian motion layer and the fixes from the impeccable scan (23 Oct 2026).
+   Loaded in <head> of every page, before first paint, so every start state is in place
+   before anything is drawn. motion.js does the parts that need the DOM after React has
+   hydrated; nothing here depends on it except the letter reveal, which has a fallback. */
+
+:root {
+  --kw-ease: cubic-bezier(.23, 1, .32, 1);       /* strong ease-out: answers at once, settles slowly */
+  --kw-ease-io: cubic-bezier(.65, 0, .35, 1);
+  /* Accent as TEXT. --red is #2240d5 (ultramarine, the name stayed) and gives 2.2-2.6 on our
+     surfaces against 4.5 for small text. Same hue mixed with white: 5.3 on #1d1e21, 6.1 on #0e0f10. */
+  --red-text: color-mix(in srgb, var(--red) 60%, #fff);
+  --danger: #ef6262;
+}
+
+/* ---------- 1. page open: the headline arrives letter by letter ---------- */
+/* The h1 waits, hidden, for motion.js to split it after hydration (measured 0.25-0.45 s after
+   first paint). If the script never runs, the safety animation shows it at 2.2 s anyway. */
+@media (prefers-reduced-motion: no-preference) {
+  main h1:not(.kw-split):not(.asc-h1) { animation: kw-safety 1ms 2.2s both; }
+  @keyframes kw-safety { from { opacity: 0 } to { opacity: 1 } }
+  h1.kw-split { animation: none; opacity: 1; }
+  .kw-w { display: inline-block; white-space: nowrap; }
+  .kw-ch {
+    display: inline-block; opacity: 0; transform: translateY(.34em); filter: blur(8px);
+    animation: kw-ch .72s var(--kw-ease) both;
+    animation-delay: calc(var(--d, 0ms) + var(--k, 0) * 24ms);
+  }
+  @keyframes kw-ch { to { opacity: 1; transform: none; filter: blur(0) } }
+
+  /* ---------- 2. sections and cards rise in as they enter the viewport ---------- */
+  .kw-rv {
+    opacity: 0; transform: translateY(34px) scale(.985);
+    transition: opacity .8s var(--kw-ease), transform .9s var(--kw-ease);
+    transition-delay: calc(var(--i, 0) * 70ms);
+  }
+  .kw-rv.kw-in { opacity: 1; transform: none; }
+}
+
+/* ---------- 3. hover: things answer the pointer ---------- */
+/* Buttons: on hover two 10 px corners come in from outside and settle on the button's own
+   frame (top-right and bottom-left, over the border). Hidden at rest. */
+.button, .link-rule { position: relative; --kw-c: rgba(255, 255, 255, .7);
+  transition: background .25s var(--kw-ease), border-color .25s var(--kw-ease), color .25s var(--kw-ease), transform .15s var(--kw-ease); }
+.button::before, .button::after, .link-rule::before, .link-rule::after {
+  content: ""; position: absolute; width: 10px; height: 10px; pointer-events: none; opacity: 0;
+  border: 0 solid var(--kw-c); transition: transform .3s var(--kw-ease), opacity .2s var(--kw-ease);
+}
+.button::before, .link-rule::before { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 3px; transform: translate(4px, -4px); }
+.button::after, .link-rule::after { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 3px; transform: translate(-4px, 4px); }
+.button--red { --kw-c: #dfe5ff; }
+/* Dark buttons: no corners, the frame turns white on hover. Corners stay on the blue button. */
+.button:not(.button--red)::before, .button:not(.button--red)::after, .link-rule::before, .link-rule::after { display: none; }
+.button:not(.button--red):hover, .link-rule:hover { border-color: #f2f3f6 !important; }
+@media (hover: hover) {
+  .button:hover::before, .button:hover::after, .link-rule:hover::before, .link-rule:hover::after { opacity: 1; transform: none; }
+}
+.button:focus-visible::before, .button:focus-visible::after, .link-rule:focus-visible::before, .link-rule:focus-visible::after { opacity: 1; transform: none; }
+.button:active, .link-rule:active { transform: translateY(1px) scale(.985); }
+
+/* Nav: an underline that grows from the left instead of a colour flip. */
+.site-nav a { position: relative; }
+.site-nav a::after {
+  content: ""; position: absolute; left: 8px; right: 8px; bottom: 2px; height: 1px;
+  background: currentColor; transform: scaleX(0); transform-origin: right center;
+  transition: transform .35s var(--kw-ease);
+}
+@media (hover: hover) {
+  .site-nav a:hover::after { transform: scaleX(1); transform-origin: left center; }
+  .site-nav a:hover { color: var(--text) !important; }
+}
+.site-nav a.is-active { color: var(--text) !important; }
+.site-nav a.is-active::after { transform: scaleX(1); }
+
+/* Cards and rows lift a little and their edge warms. No glow. */
+.ascian-card, .ascian-step, .ascian-engine__stage, .stepper__row, .token-block, .kw-flow__card {
+  transition: transform .4s var(--kw-ease), border-color .3s var(--kw-ease), background-color .3s var(--kw-ease);
+}
+@media (hover: hover) {
+  .ascian-card:hover, .ascian-step:hover, .ascian-engine__stage:hover, .kw-flow__card:hover {
+    transform: translateY(-3px); border-color: #2240d559;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button::before, .button::after, .link-rule::before, .link-rule::after,
+  .site-nav a::after, .ascian-card, .ascian-step, .ascian-engine__stage, .kw-flow__card { transition: none; }
+  .ascian-card:hover, .ascian-step:hover, .ascian-engine__stage:hover, .kw-flow__card:hover { transform: none; }
+}
+
+/* ---------- 4. what the scan called machine-made ---------- */
+/* blinking-cursor, 40 pages: a fake caret after the headline. */
+.catalog-caret, .docs-hero__caret { display: none !important; }
+/* pulsing-dot, 44 pages: the header ticker dot pulses with nothing live behind it. */
+.token-ticker__dot { animation: none !important; box-shadow: none !important; }
+/* marquee, home and docs: content that scrolls on its own. */
+.provider-carousel__track, .docs-ticker__track { animation: none !important; }
+/* dark-glow: a red glow under the primary button in the chat. */
+.button--red { box-shadow: none !important; }
+/* side-tab, docs notes: a thick coloured stripe on the left edge. */
+.docs-note { border-left-width: 1px !important; border-style: solid; border-color: var(--line) !important; }
+/* hero-eyebrow-chip, 22 pages: breadcrumbs dressed as a tracked-caps chip. */
+.AuthorityPage-module__J4HJAW__breadcrumbs, .AuthorityPage-module__J4HJAW__breadcrumbs * {
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+/* The warm red fog behind every section: decoration with no information in it. */
+.glow-warm-left::before, .glow-warm-right::before, .footer::before, .catalog-head::before, .catalog-aura::before { background: none !important; }
+/* One red word in every section heading is a template; the hero keeps its accent. */
+.ascian-section .engine-heading em, .footer__cta h2 em { color: inherit !important; }
+
+/* ---------- 5. reading ---------- */
+/* tiny-text: 11 px body copy on 53 pages. */
+p.docs-verified, .catalog-rail__group p, .catalog-rail__foot, .savings__fine, .ascian-note { font-size: 12.5px !important; }
+/* undersized-ui-text: 9-10.5 px tags in docs tables and the model catalogue. */
+.catalog-row__type { font-size: 11px !important; letter-spacing: .06em !important; }
+.catalog-row__price small, .catalog-row__name small { font-size: 11px !important; }
+.catalog-row__price { white-space: nowrap; }
+.docs-tag { font-size: 11px !important; }
+/* line-length: docs paragraphs ran to 95-149 characters. */
+:root .docs-prose > p, :root .docs-prose ul, :root .docs-prose ol { max-width: 35em; }
+:root [class*="roadmap-module__"][class*="__summary"], :root [class*="roadmap-module__"][class*="__announce"], :root [class*="roadmap-module__"][class*="__moved"], :root [class*="roadmap-module__"][class*="__items"] > li { max-width: 35em; }
+:root .ascian-card__list > li { max-width: 36em; }
+/* cramped-padding: 3 px above and below 15 px text. */
+.AuthorityPage-module__J4HJAW__tocCta { padding-top: 6px !important; padding-bottom: 6px !important; }
+
+/* ---------- 6. the how-it-works flow (built by motion.js from the page's own steps) ---------- */
+.kw-flow-on .stepper__track, .kw-flow-on .stepper__grid { display: none !important; }
+.kw-flow-on .stepper__pin, .kw-flow-on .stepper__sticky { position: static !important; }
+.kw-flow { margin-top: 40px; }
+.kw-flow__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.kw-flow__card {
+  position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  padding: 22px 22px 24px; border: 1px solid var(--line); border-radius: var(--radius, 10px);
+  background: var(--panel);
+}
+.kw-flow__n { font: 600 12px var(--font-mono), ui-monospace, monospace; letter-spacing: .08em; color: var(--muted); }
+.kw-flow__card h2 { text-wrap: balance; margin: 0 !important; font-size: 19px !important; line-height: 1.25 !important; font-weight: 600 !important; letter-spacing: -.01em !important; font-family: inherit; color: var(--text); max-width: none !important; }
+.kw-flow__card p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--body); max-width: 46ch; }
+.kw-glyph { height: 66px; color: #c5c7cf; margin-bottom: 8px; }
+.kw-glyph svg { height: 100%; width: auto; display: block; overflow: visible; }
+.kw-glyph .r { color: #586fe4; }
+.kw-flow__loop { margin: 26px 0 0; font: 500 15px var(--font-mono), ui-monospace, monospace; color: var(--muted); letter-spacing: .02em; }
+.kw-flow__loop b { color: var(--text); font-weight: 600; }
+@media (max-width: 1040px) { .kw-flow__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .kw-flow__grid { grid-template-columns: 1fr; } }
+
+/* glyphs on the home page funding cards */
+.ascian-engine__stage { position: relative; }
+/* Home stages: a small working piece of the product per card (fund, convert, ship).
+   One 6 s loop per card, eased, no line drawings. */
+.ascian-engine__stage.kw-has-ui .ascian-engine__body { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) 248px !important; column-gap: 28px; }
+.kw-ui { align-self: start; width: 248px; padding: 12px; border: 1px solid #26272b; border-radius: 10px;
+  background: linear-gradient(180deg, #141518, #101113); box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .9);
+  font: 500 12px/1.3 var(--font-body); color: #c9ccd3; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.kw-ui__head { display: flex; justify-content: space-between; align-items: baseline; }
+.kw-ui__head span { color: #f2f3f6; font-weight: 600; font-size: 12.5px; }
+.kw-ui__head em { font-style: normal; color: #84868d; font: 500 11px/1 var(--font-mono); }
+/* fund */
+.kw-ui__coins { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.kw-ui__coins span { position: relative; z-index: 1; height: 34px; display: grid; place-items: center; border-radius: 8px; background: #1b1c20; color: #9a9ca4; }
+.kw-ui__coins span svg { width: 16px; height: 16px; }
+.kw-ui__sel { position: absolute; z-index: 2; left: 0; top: 0; width: calc((100% - 18px) / 4); height: 34px; border-radius: 8px;
+  border: 1px solid #6e86ff; box-shadow: 0 0 0 3px rgba(53, 87, 234, .18); }
+.kw-ui__field { display: flex; justify-content: space-between; align-items: center; height: 34px; padding: 0 10px; border-radius: 8px; background: #1b1c20; }
+.kw-ui__field > span { color: #84868d; }
+.kw-ui__field em { font: 600 12.5px/1 var(--font-mono); font-style: normal; color: #f2f3f6; display: flex; align-items: center; }
+.kw-ui__type { display: inline-block; overflow: hidden; white-space: nowrap; font-style: normal; }
+.kw-ui__caret { width: 1.5px; height: 14px; margin-left: 2px; background: #8ea2ff; font-style: normal; }
+.kw-ui__status { position: relative; height: 18px; }
+.kw-ui__status > span { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 7px; }
+.kw-ui__s1 { color: #9a9ca4; }
+.kw-ui__s2 { color: #e9ebf2; }
+.kw-ui__spin { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #3a3c43; border-top-color: #8ea2ff; }
+.kw-ui__ok { width: 14px; height: 14px; border-radius: 50%; background: #3557ea; position: relative; }
+.kw-ui__ok::after { content: ""; position: absolute; left: 4.5px; top: 2.5px; width: 3.5px; height: 6.5px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+/* convert */
+.kw-ui__bal { height: 6px; border-radius: 3px; background: #1f2024; overflow: hidden; }
+.kw-ui__bal i { display: block; height: 100%; width: 100%; border-radius: 3px; background: linear-gradient(90deg, #2240d5, #8ea2ff); transform-origin: left; }
+.kw-ui__row { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid transparent; }
+.kw-ui__logo { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 5px; background: #1b1c20; color: #d9dbe1; }
+.kw-ui__logo svg { width: 13px; height: 13px; }
+.kw-ui__nm { flex: 1; color: #d9dbe1; }
+.kw-ui__pill { width: 44px; height: 4px; border-radius: 2px; background: #26272b; overflow: hidden; }
+.kw-ui__pill i { display: block; height: 100%; width: 100%; background: #8ea2ff; transform-origin: left; transform: scaleX(0); }
+/* ship */
+.kw-ui__tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.kw-ui__tile { position: relative; height: 92px; border-radius: 8px; background: #1b1c20; overflow: hidden; }
+.kw-ui__tile--text { padding: 12px 10px; display: flex; flex-direction: column; gap: 7px; }
+.kw-ui__tile--text i { display: block; height: 5px; border-radius: 3px; background: #3a3c43; transform-origin: left; }
+.kw-ui__tile--text i:nth-child(2) { width: 80%; } .kw-ui__tile--text i:nth-child(3) { width: 92%; } .kw-ui__tile--text i:nth-child(4) { width: 55%; }
+.kw-ui__tile--img span { position: absolute; inset: 0; background:
+  radial-gradient(60% 50% at 70% 30%, #c9d3ff 0, transparent 60%),
+  linear-gradient(180deg, #3a56d8 0%, #8fa4f0 62%, #1b2f8f 63%, #0d1650 100%); }
+.kw-ui__tile--vid { background: #0c0d10; }
+.kw-ui__play { position: absolute; left: 50%; top: 42%; width: 0; height: 0; margin: -8px 0 0 -5px; border-left: 13px solid #e9ebf2; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+.kw-ui__prog { position: absolute; left: 8px; right: 8px; bottom: 9px; height: 3px; border-radius: 2px; background: #2a2c31; overflow: hidden; }
+.kw-ui__prog i { display: block; height: 100%; background: #8ea2ff; transform-origin: left; transform: scaleX(0); }
+.kw-ui__done { position: absolute; right: 6px; top: 6px; width: 14px; height: 14px; border-radius: 50%; background: #3557ea; opacity: 0; transform: scale(.6); }
+.kw-ui__done::after { content: ""; position: absolute; left: 4.5px; top: 2.5px; width: 3.5px; height: 6.5px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+@media (max-width: 1100px) {
+  .ascian-engine__stage.kw-has-ui .ascian-engine__body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  .kw-ui { grid-column: 1 / -1; margin-top: 8px; width: 100%; max-width: 360px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kw-ui__sel { animation: ui-sel 6s var(--kw-ease) infinite; }
+  @keyframes ui-sel { 0%, 12% { transform: translateX(0) } 26%, 92% { transform: translateX(calc(300% + 18px)) } 100% { transform: translateX(0) } }
+  .kw-ui__type { animation: ui-type 6s steps(8, end) infinite; }
+  @keyframes ui-type { 0%, 30% { max-width: 0 } 46%, 92% { max-width: 8ch } 96%, 100% { max-width: 0 } }
+  .kw-ui__caret { animation: ui-caret 1s steps(1) infinite; }
+  @keyframes ui-caret { 50% { opacity: 0 } }
+  .kw-ui__s1 { animation: ui-s1 6s var(--kw-ease) infinite; }
+  @keyframes ui-s1 { 0%, 48% { opacity: 0; transform: translateY(4px) } 52%, 68% { opacity: 1; transform: none } 72%, 100% { opacity: 0; transform: translateY(-4px) } }
+  .kw-ui__s2 { animation: ui-s2 6s var(--kw-ease) infinite; }
+  @keyframes ui-s2 { 0%, 70% { opacity: 0; transform: translateY(4px) } 75%, 92% { opacity: 1; transform: none } 97%, 100% { opacity: 0 } }
+  .kw-ui__spin { animation: ui-spin .8s linear infinite; }
+  @keyframes ui-spin { to { transform: rotate(1turn) } }
+
+  .kw-ui__bal i { animation: ui-bal 6s var(--kw-ease) infinite; }
+  @keyframes ui-bal { 0% { transform: scaleX(.18) } 18%, 30% { transform: scaleX(.82) } 50% { transform: scaleX(.74) } 70% { transform: scaleX(.66) } 90% { transform: scaleX(.58) } 100% { transform: scaleX(.18) } }
+  .kw-ui__row { animation: ui-row 6s var(--kw-ease) infinite; }
+  .kw-ui__row--1 { animation-delay: 1.2s; } .kw-ui__row--2 { animation-delay: 2.4s; }
+  @keyframes ui-row { 0%, 30% { border-color: transparent; background: transparent } 34%, 50% { border-color: #3557ea; background: rgba(53, 87, 234, .1) } 56%, 100% { border-color: transparent; background: transparent } }
+  .kw-ui__pill i { animation: ui-pill 6s var(--kw-ease) infinite; }
+  .kw-ui__row--1 .kw-ui__pill i { animation-delay: 1.2s; } .kw-ui__row--2 .kw-ui__pill i { animation-delay: 2.4s; }
+  @keyframes ui-pill { 0%, 32% { transform: scaleX(0) } 50%, 90% { transform: scaleX(1) } 100% { transform: scaleX(0) } }
+
+  .kw-ui__tile--text i { animation: ui-line 6s var(--kw-ease) infinite; }
+  .kw-ui__tile--text i:nth-child(2) { animation-delay: .15s; } .kw-ui__tile--text i:nth-child(3) { animation-delay: .3s; } .kw-ui__tile--text i:nth-child(4) { animation-delay: .45s; }
+  @keyframes ui-line { 0%, 4% { transform: scaleX(0); background: #3a3c43 } 18%, 88% { transform: scaleX(1); background: #5c5f68 } 96%, 100% { transform: scaleX(0) } }
+  .kw-ui__tile--img span { animation: ui-img 6s var(--kw-ease) infinite; }
+  @keyframes ui-img { 0%, 26% { filter: blur(14px) saturate(.2) brightness(.5); transform: scale(1.15) } 52%, 90% { filter: none; transform: none } 100% { filter: blur(14px) saturate(.2) brightness(.5); transform: scale(1.15) } }
+  .kw-ui__prog i { animation: ui-prog 6s linear infinite; }
+  @keyframes ui-prog { 0%, 50% { transform: scaleX(0) } 88%, 92% { transform: scaleX(1) } 100% { transform: scaleX(0) } }
+  .kw-ui__tile .kw-ui__done { animation: ui-done 6s var(--kw-ease) infinite; }
+  .kw-ui__tile--img .kw-ui__done { animation-delay: 1.6s; } .kw-ui__tile--vid .kw-ui__done { animation-delay: 3.2s; }
+  .kw-ui__tile--text .kw-ui__done { animation-delay: .2s; }
+  @keyframes ui-done { 0%, 22% { opacity: 0; transform: scale(.6) } 28%, 40% { opacity: 1; transform: none } 46%, 100% { opacity: 0; transform: scale(.6) } }
+}
+
+/* glyph motion: small loops, each one says what the step does */
+@media (prefers-reduced-motion: no-preference) {
+  .g-cursor { animation: g-cursor 3.6s var(--kw-ease-io) infinite; }
+  @keyframes g-cursor { 0%, 12% { transform: translate(34px, 22px) } 42%, 62% { transform: translate(0, 0) } 88%, 100% { transform: translate(34px, 22px) } }
+  .g-tap { animation: g-tap 3.6s var(--kw-ease) infinite; }
+  @keyframes g-tap { 0%, 44% { opacity: 0 } 48%, 70% { opacity: 1 } 80%, 100% { opacity: 0 } }
+  .g-knob { animation: g-knob 3.2s var(--kw-ease-io) infinite alternate; }
+  @keyframes g-knob { from { transform: translateX(0) } to { transform: translateX(46px) } }
+  .g-fill { transform-box: fill-box; transform-origin: left center; animation: g-fill 3.2s var(--kw-ease-io) infinite alternate; }
+  @keyframes g-fill { from { transform: scaleX(.12) } to { transform: scaleX(1) } }
+  .g-sel { animation: g-sel 3.2s var(--kw-ease) infinite; }
+  @keyframes g-sel { 0%, 30% { opacity: .35 } 40%, 100% { opacity: 1 } }
+  .g-scan { animation: g-scan 2.8s var(--kw-ease-io) infinite alternate; }
+  @keyframes g-scan { from { transform: translateY(0) } to { transform: translateY(30px) } }
+  .g-row { transform-box: fill-box; transform-origin: left center; animation: g-row 2.8s var(--kw-ease) infinite; }
+  @keyframes g-row { 0% { transform: scaleX(.3); opacity: .4 } 40%, 100% { transform: scaleX(1); opacity: 1 } }
+  .g-drop { animation: g-drop 2.4s var(--kw-ease) infinite; }
+  @keyframes g-drop { 0% { transform: translateY(-16px); opacity: 0 } 25% { opacity: 1 } 60% { transform: translateY(10px); opacity: 1 } 75%, 100% { transform: translateY(14px); opacity: 0 } }
+  .g-bar { transform-box: fill-box; transform-origin: center bottom; animation: g-bar 2.4s var(--kw-ease) infinite; }
+  @keyframes g-bar { 0%, 30% { transform: scaleY(.25) } 70%, 100% { transform: scaleY(1) } }
+  .g-hop { animation: g-hop 4.8s var(--kw-ease-io) infinite; }
+  @keyframes g-hop { 0%, 18% { transform: translate(0, 0) } 26%, 43% { transform: translate(28px, 0) } 51%, 68% { transform: translate(28px, 22px) } 76%, 100% { transform: translate(56px, 22px) } }
+  .g-msg { opacity: 0; animation: g-msg 4.2s var(--kw-ease) infinite; }
+  @keyframes g-msg { 0% { opacity: 0; transform: translateY(6px) } 10%, 85% { opacity: 1; transform: none } 100% { opacity: 0 } }
+  .g-step { transform-box: fill-box; transform-origin: center bottom; animation: g-step 4.2s steps(1) infinite; }
+  @keyframes g-step { 0% { transform: scaleY(1) } 33% { transform: scaleY(.78) } 66% { transform: scaleY(.56) } 100% { transform: scaleY(1) } }
+  .g-pass { animation: g-pass 2.6s var(--kw-ease-io) infinite; }
+  @keyframes g-pass { 0% { transform: translateX(0); opacity: 0 } 15% { opacity: 1 } 70% { transform: translateX(52px); opacity: 1 } 85%, 100% { transform: translateX(60px); opacity: 0 } }
+  .d1 { animation-delay: .35s !important } .d2 { animation-delay: .7s !important } .d3 { animation-delay: 1.05s !important }
+}
+
+/* kw-red-text: accent text lightened to pass 4.5:1 on every surface (impeccable low-contrast). Generated from the Next CSS chunks. */
+:root .ApiKeys-module__FK55oq__cursor,
+:root .ApiKeys-module__FK55oq__error,
+:root .ApiKeys-module__FK55oq__faq dt code,
+:root .ApiKeys-module__FK55oq__issuedLabel,
+:root .ApiKeys-module__FK55oq__prompt,
+:root .ApiKeys-module__FK55oq__revoke:hover,
+:root .ApiKeys-module__FK55oq__steps>li:before,
+:root .AuthorityPage-module__J4HJAW__article .AuthorityPage-module__J4HJAW__chapterN,
+:root .AuthorityPage-module__J4HJAW__cardLink,
+:root .AuthorityPage-module__J4HJAW__cardMeta,
+:root .AuthorityPage-module__J4HJAW__count,
+:root .AuthorityPage-module__J4HJAW__guides .AuthorityPage-module__J4HJAW__card .AuthorityPage-module__J4HJAW__cardKeyword,
+:root .AuthorityPage-module__J4HJAW__signalMark,
+:root .AuthorityPage-module__J4HJAW__signalRoute,
+:root .AuthorityPage-module__J4HJAW__toc>a:not(.AuthorityPage-module__J4HJAW__tocCta) span,
+:root .AuthorityPage-module__J4HJAW__toc>a:not(.AuthorityPage-module__J4HJAW__tocCta):hover,
+:root .ChatWorkspace-module__lY2uzG__accountLine button,
+:root .ChatWorkspace-module__lY2uzG__attachErr,
+:root .ChatWorkspace-module__lY2uzG__bodyMd a,
+:root .ChatWorkspace-module__lY2uzG__doorIcon,
+:root .ChatWorkspace-module__lY2uzG__doorbarBalance,
+:root .ChatWorkspace-module__lY2uzG__doorbarSignin,
+:root .ChatWorkspace-module__lY2uzG__dropHint,
+:root .ChatWorkspace-module__lY2uzG__historyDelete:hover,
+:root .ChatWorkspace-module__lY2uzG__libMore,
+:root .ChatWorkspace-module__lY2uzG__planHead span,
+:root .ChatWorkspace-module__lY2uzG__planLink,
+:root .ChatWorkspace-module__lY2uzG__signinCard .ChatWorkspace-module__lY2uzG__balanceWord,
+:root .ChatWorkspace-module__lY2uzG__stop,
+:root .ChatWorkspace-module__lY2uzG__vOn,
+:root .ChatWorkspace-module__lY2uzG__welcomeMark,
+:root .CollabRoom-module__Cu6W3W__doorOn,
+:root .CollabRoom-module__Cu6W3W__error,
+:root .CollabRoom-module__Cu6W3W__linkish,
+:root .CollabRoom-module__Cu6W3W__reactOn,
+:root .CollabRoom-module__Cu6W3W__streaming:after,
+:root .CollabRoom-module__Cu6W3W__threadChipOn,
+:root .CollabRoom-module__Cu6W3W__tool:hover,
+:root .CompareWorkbench-module__n6nqVW__specs dt,
+:root .CompareWorkbench-module__n6nqVW__table tbody th,
+:root .SafeMarkdown-module__zf7Ryq__prompt,
+:root .SignIn-module__bAJvaa__linkish,
+:root .TrustPage-module__cEbYRq__body p a,
+:root .WalletDashboard-module__1hCSvG__expired,
+:root .WalletLink-module__XyKd4W__error,
+:root .about-module__8TymFG__contactLede a,
+:root .authority-card>p,
+:root .authority-fact span,
+:root .authority-faq summary span,
+:root .authority-section__number,
+:root .authority-signal__mark,
+:root .authority-signal__route,
+:root .authority-table thead th,
+:root .authority-toc>a span,
+:root .benefit__meta,
+:root .brand span,
+:root .catalog-caret,
+:root .catalog-count__link:hover,
+:root .catalog-facet.is-active .catalog-facet__n,
+:root .catalog-note a:hover,
+:root .catalog-row__run:hover,
+:root .chat-welcome>h1 span,
+:root .compare-results-mobile dt,
+:root .compare-results>.compare-results__label,
+:root .compare-selectors label>span,
+:root .compare-selectors>button,
+:root .comparison-difference,
+:root .compute-row--head,
+:root .compute-row--head span,
+:root .contact-module__swMWYG__inbox .contact-module__swMWYG__address:hover,
+:root .credit-chip b,
+:root .credit-controls legend,
+:root .crypto-market__assets small.is-down,
+:root .crypto-price-table td>a,
+:root .dep-track.is-bad .dep-track__line,
+:root .dep-track__step.is-now i,
+:root .developers-module__gRQfqG__method,
+:root .directory-card>p,
+:root .directory-card__meta,
+:root .directory-hero__mark,
+:root .engine-heading em,
+:root .filter-tabs button.is-active,
+:root .footer__cta h2 em,
+:root .funding-terminal__balance strong,
+:root .how-step small,
+:root .how-step>div,
+:root .hub-matrix__row--head strong,
+:root .hub-matrix__row>span:before,
+:root .hub-principle>div,
+:root .hub-switch__row--head strong,
+:root .hub-switch__row>span:before,
+:root .hubs-module__bP7MjW__guideLink,
+:root .inference-row strong,
+:root .input-with-unit span,
+:root .job-panel__tag,
+:root .ascian-card__kicker,
+:root .ascian-engine-foot em,
+:root .ascian-engine__arrow,
+:root .ascian-engine__rows b,
+:root .ascian-faq summary:before,
+:root .ascian-faq summary:hover,
+:root .ascian-faq--stacked summary:hover .ascian-faq__chevron,
+:root .ascian-method b,
+:root .ascian-rows__head span,
+:root .ascian-stage .ascian-hero__copy h1.engine-heading em,
+:root .ascian-step__n,
+:root .ascian-table .is-action a,
+:root .ascian-table__note a,
+:root .message--assistant>span,
+:root .methodology-module__IxIFEq__correctionsLede a,
+:root .model-run,
+:root .models-breadcrumb strong,
+:root .models-hero__tabs button.is-active,
+:root .new-route>div,
+:root .optimized-toggle small,
+:root .price-head,
+:root .pricing-method__item>span,
+:root .recommendation-head button,
+:root .roadmap-module__w6RkUa__chip.roadmap-module__w6RkUa__adv b,
+:root .roadmap-module__w6RkUa__head:hover .roadmap-module__w6RkUa__title,
+:root .roadmap-module__w6RkUa__hero h1 em,
+:root .roadmap-module__w6RkUa__items li:before,
+:root .roadmap-module__w6RkUa__opener,
+:root .roadmap-module__w6RkUa__requestError,
+:root .roadmap-module__w6RkUa__station[open] .roadmap-module__w6RkUa__chev,
+:root .savings__figure,
+:root .savings__points li:before,
+:root .site-nav a.is-active,
+:root .site-nav a:hover,
+:root .site-nav__trigger.is-active,
+:root .site-nav__trigger:hover,
+:root .speak.is-speaking,
+:root .stepper__body li:before,
+:root .stepper__panel-n,
+:root .stepper__row.is-active .stepper__n,
+:root .stepper__row.is-active .stepper__title,
+:root .steps-outro a:hover,
+:root .token-bands td strong,
+:root .token-block__mark,
+:root .token-block__more a,
+:root .token-card__kicker,
+:root .token-contract button,
+:root .token-dollar,
+:root .token-faq summary:after,
+:root .token-loop li span,
+:root .token-loop li:not(:last-child):after,
+:root .token-strip__link,
+:root .token-strip__ticker,
+:root .token-ticker.is-down .token-ticker__figures em,
+:root .value-engine__connector,
+:root .value-stage__credit-mark,
+:root .value-stage__meta span,
+:root a:hover{color:var(--red-text)}
+
+/* default UA placeholder #757575 fails 4.5 on panels */
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; }
+
+/* Errors, failed requests and falling prices stay red: the accent is blue now and must not
+   read as a warning. #ef6262 passes 5.2:1 on the darkest panel. */
+:root .ApiKeys-module__FK55oq__error, :root .ApiKeys-module__FK55oq__revoke:hover,
+:root .ChatWorkspace-module__lY2uzG__historyDelete:hover, :root .ChatWorkspace-module__lY2uzG__attachErr,
+:root .CollabRoom-module__Cu6W3W__error, :root .WalletLink-module__XyKd4W__error,
+:root .crypto-market__assets small.is-down, :root .token-ticker.is-down .token-ticker__figures em,
+:root .roadmap-module__w6RkUa__requestError { color: var(--danger) !important; }
+:root .SignIn-module__bAJvaa__error, :root .WalletDashboard-module__1hCSvG__error {
+  background: rgba(239, 98, 98, .08) !important; border-color: rgba(239, 98, 98, .4) !important; }
+
+/* ---------- "What are you making?" ---------- */
+/* Job panel (home, how it works): a pictogram for the chosen job, content re-enters on switch. */
+.job-panel.kw-job-on { position: relative; }
+.kw-job-glyph { position: absolute; right: 24px; bottom: 22px; width: 200px; pointer-events: none; }
+@media (max-width: 1100px) { .kw-job-glyph { display: none; } }
+.kw-job-glyph .r { color: var(--red-text); }
+.kw-job-glyph svg { width: 100%; height: 100%; display: block; overflow: hidden; }
+@media (max-width: 760px) { .kw-job-glyph { display: none; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .job-panel.kw-swap .job-panel__head, .job-panel.kw-swap .job-panel__picks, .job-panel.kw-swap .kw-job-glyph {
+    animation: kw-swap .55s var(--kw-ease) backwards;
+  }
+  .job-panel.kw-swap .job-panel__picks { animation-delay: .06s; }
+  .job-panel.kw-swap .kw-job-glyph { animation-delay: .1s; }
+  @keyframes kw-swap { from { opacity: 0; transform: translateY(10px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+  .g-dot { animation: g-dot 1.4s var(--kw-ease) infinite; }
+  @keyframes g-dot { 0%, 60%, 100% { opacity: .25; transform: translateY(0) } 30% { opacity: 1; transform: translateY(-3px) } }
+  .g-brl { animation: g-brl 3s var(--kw-ease-io) infinite; }
+  .g-brr { animation: g-brr 3s var(--kw-ease-io) infinite; }
+  @keyframes g-brl { 0%, 100% { transform: translateX(0) } 50% { transform: translateX(-5px) } }
+  @keyframes g-brr { 0%, 100% { transform: translateX(0) } 50% { transform: translateX(5px) } }
+  .g-caret { animation: g-caret 1s steps(1) infinite; }
+  @keyframes g-caret { 50% { opacity: 0 } }
+  .g-sun { animation: g-sun 4.8s var(--kw-ease-io) infinite alternate; }
+  @keyframes g-sun { from { transform: translateY(10px) } to { transform: translateY(-2px) } }
+  .g-reel { animation: g-reel 3.6s linear infinite; }
+  @keyframes g-reel { from { transform: translateX(0) } to { transform: translateX(-42px) } }
+  .g-wave { transform-box: fill-box; transform-origin: center; animation: g-wave 1.1s var(--kw-ease-io) infinite alternate; }
+  @keyframes g-wave { from { transform: scaleY(.35) } to { transform: scaleY(1) } }
+
+  /* door tiles enter one after another */
+  [class*="__doorGrid"] > [class*="__doorTile"] { animation: kw-swap .6s var(--kw-ease) backwards; }
+  [class*="__doorGrid"] > [class*="__doorTile"]:nth-child(2) { animation-delay: .06s; }
+  [class*="__doorGrid"] > [class*="__doorTile"]:nth-child(3) { animation-delay: .12s; }
+  [class*="__doorGrid"] > [class*="__doorTile"]:nth-child(4) { animation-delay: .18s; }
+  [class*="__doorGrid"] > [class*="__doorTile"]:nth-child(5) { animation-delay: .24s; }
+}
+
+/* undersized-ui-text: 8-10.5 px labels on the home market row and the workspace rail. */
+.crypto-market__assets small { font-size: 11px !important; }
+.ChatWorkspace-module__lY2uzG__railLabel, .ChatWorkspace-module__lY2uzG__balanceWord, .ChatWorkspace-module__lY2uzG__planHead span { font-size: 11px !important; }
+
+/* The accent-text override above also matches a:hover, which turned button labels blue on
+   hover. Buttons keep their own label colour. */
+:root a.button--red:hover, :root a.button--red:focus-visible { color: #fff !important; }
+:root a.button--ghost:hover, :root a.link-rule:hover { color: var(--text) !important; }
+
+
+/* ---------- product pieces for how-it-works steps and the job panel ---------- */
+.kw-flow__art { margin-bottom: 14px; height: 140px; display: flex; align-items: flex-start; }
+.kw-ui--sm { width: 100%; max-width: 280px; padding: 10px; gap: 8px; }
+.kw-ui__grid4 { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.kw-ui__grid4 span { position: relative; z-index: 1; height: 38px; display: grid; place-items: center; border-radius: 7px; background: #1b1c20; color: #c9ccd3; font-size: 11.5px; }
+.kw-ui__hop { position: absolute; z-index: 2; left: 0; top: 0; width: calc((100% - 18px) / 4); height: 38px; border-radius: 7px; border: 1px solid #6e86ff; box-shadow: 0 0 0 3px rgba(53, 87, 234, .18); }
+.kw-ui__composer { display: flex; justify-content: space-between; align-items: center; height: 30px; padding: 0 6px 0 10px; border-radius: 7px; border: 1px solid #2a2c31; color: #84868d; }
+.kw-ui__composer i { width: 20px; height: 20px; border-radius: 5px; background: #3557ea; }
+.kw-ui__coins--txt span { font: 600 11px/1 var(--font-mono); color: #c9ccd3; height: 30px; }
+.kw-ui__coins--txt .kw-ui__sel, .kw-ui--amount .kw-ui__sel { height: 30px; }
+.kw-ui__kv { display: flex; justify-content: space-between; align-items: center; height: 22px; }
+.kw-ui__kv span { color: #84868d; }
+.kw-ui__kv b { font: 600 12px/1 var(--font-mono); color: #f2f3f6; }
+.kw-ui__skel { width: 70px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #26272b 0, #3a3c43 50%, #26272b 100%); background-size: 200% 100%; }
+.kw-ui__skel--2 { width: 92px; }
+.kw-ui__live { display: inline-flex; align-items: center; gap: 5px; }
+.kw-ui__live i { width: 6px; height: 6px; border-radius: 50%; background: #8ea2ff; }
+.kw-ui__note { color: #84868d; font-size: 11.5px; }
+.kw-ui__seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 8px; background: #1b1c20; }
+.kw-ui__seg span { position: relative; z-index: 1; height: 26px; display: grid; place-items: center; font-size: 11.5px; color: #c9ccd3; }
+.kw-ui__segsel { position: absolute; left: 3px; top: 3px; width: calc(50% - 3px); height: 26px; border-radius: 6px; background: #2a2d36; }
+.kw-ui__list { position: relative; display: flex; flex-direction: column; }
+.kw-ui__list span { position: relative; z-index: 1; height: 26px; display: flex; align-items: center; padding: 0 8px; color: #d9dbe1; }
+.kw-ui__listsel { position: absolute; left: 0; right: 0; top: 0; height: 26px; border-radius: 6px; border: 1px solid #3557ea; background: rgba(53, 87, 234, .1); }
+.kw-ui__chat { display: flex; flex-direction: column; gap: 6px; }
+.kw-ui__msg { border-radius: 10px; padding: 7px 10px; }
+.kw-ui__msg--me { align-self: flex-end; background: rgba(120, 140, 255, .18); color: #eef1ff; }
+.kw-ui__msg--ai { align-self: stretch; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; background: #17181b; }
+.kw-ui__msg--ai i { display: block; height: 5px; border-radius: 3px; background: #4a4d55; transform-origin: left; }
+.kw-ui__msg--ai i:nth-child(2) { width: 86%; } .kw-ui__msg--ai i:nth-child(3) { width: 58%; }
+.kw-ui__meter { display: flex; align-items: center; gap: 10px; color: #84868d; }
+.kw-ui__meter .kw-ui__bal { flex: 1; display: block; }
+.kw-ui__code { display: flex; flex-direction: column; gap: 7px; padding: 10px; border-radius: 8px; background: #0c0d10; }
+.kw-ui__code i { display: block; height: 5px; border-radius: 3px; transform-origin: left; }
+.kw-ui__code .c1 { width: 62%; background: #8ea2ff; } .kw-ui__code .c2 { width: 48%; margin-left: 12px; background: #5c5f68; }
+.kw-ui__code .c3 { width: 70%; margin-left: 24px; background: #c9a86a; } .kw-ui__code .c4 { width: 40%; margin-left: 12px; background: #5c5f68; }
+.kw-ui__code .c5 { width: 18%; background: #8ea2ff; }
+.kw-ui__tiles--one { grid-template-columns: 1fr; }
+.kw-ui__tiles--one .kw-ui__tile { height: 104px; }
+.kw-ui__frames { position: absolute; left: 8px; right: 8px; top: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.kw-ui__frames i { height: 26px; border-radius: 4px; background: linear-gradient(180deg, #2b3a8f, #121a44); opacity: .7; }
+.kw-ui__wave { display: flex; align-items: center; gap: 4px; height: 70px; padding: 0 6px; }
+.kw-ui__wave i { flex: 1; height: 100%; border-radius: 3px; background: #4a4d55; transform: scaleY(.25); }
+.kw-ui__wave i:nth-child(4n+2) { background: #8ea2ff; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .kw-ui__grid4--enter .kw-ui__hop { animation: ui-hop 6s var(--kw-ease) infinite; }
+  @keyframes ui-hop { 0%, 14% { transform: translateX(0) } 24%, 38% { transform: translateX(calc(100% + 6px)) } 48%, 88% { transform: translateX(calc(200% + 12px)) } 96%, 100% { transform: translateX(0) } }
+  .kw-ui__grid4--enter span:nth-child(4) { animation: ui-press 6s var(--kw-ease) infinite; }
+  @keyframes ui-press { 0%, 52% { background: #1b1c20 } 56%, 88% { background: rgba(53, 87, 234, .22); color: #fff } 96%, 100% { background: #1b1c20 } }
+  .kw-ui__skel { animation: ui-skel 1.4s linear infinite; }
+  @keyframes ui-skel { from { background-position: 100% 0 } to { background-position: -100% 0 } }
+  .kw-ui__live i { animation: ui-live 2s var(--kw-ease) infinite; }
+  @keyframes ui-live { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+  .kw-ui__bal--in i { animation: ui-balin 6s var(--kw-ease) infinite; }
+  @keyframes ui-balin { 0%, 40% { transform: scaleX(.12) } 70%, 92% { transform: scaleX(.86) } 100% { transform: scaleX(.12) } }
+  .kw-ui--credits .kw-ui__s1 { animation-name: ui-c1; } .kw-ui--credits .kw-ui__s2 { animation-name: ui-c2; }
+  @keyframes ui-c1 { 0%, 4% { opacity: 0; transform: translateY(4px) } 8%, 40% { opacity: 1; transform: none } 46%, 100% { opacity: 0; transform: translateY(-4px) } }
+  @keyframes ui-c2 { 0%, 46% { opacity: 0; transform: translateY(4px) } 52%, 92% { opacity: 1; transform: none } 97%, 100% { opacity: 0 } }
+  .kw-ui__segsel { animation: ui-seg 6s var(--kw-ease) infinite; }
+  @keyframes ui-seg { 0%, 40% { transform: translateX(0) } 48%, 92% { transform: translateX(100%) } 100% { transform: translateX(0) } }
+  .kw-ui__listsel { animation: ui-list 6s var(--kw-ease) infinite; }
+  @keyframes ui-list { 0%, 50% { transform: translateY(0) } 58%, 70% { transform: translateY(26px) } 78%, 92% { transform: translateY(52px) } 100% { transform: translateY(0) } }
+  .kw-ui__msg--me { animation: ui-me 6s var(--kw-ease) infinite; }
+  @keyframes ui-me { 0%, 6% { opacity: 0; transform: translateY(8px) } 14%, 90% { opacity: 1; transform: none } 97%, 100% { opacity: 0 } }
+  .kw-ui__msg--ai { animation: ui-ai 6s var(--kw-ease) infinite; }
+  @keyframes ui-ai { 0%, 20% { opacity: 0; transform: translateY(8px) } 28%, 90% { opacity: 1; transform: none } 97%, 100% { opacity: 0 } }
+  .kw-ui__msg--ai i { animation: ui-line2 6s var(--kw-ease) infinite; }
+  .kw-ui__msg--ai i:nth-child(2) { animation-delay: .25s; } .kw-ui__msg--ai i:nth-child(3) { animation-delay: .5s; }
+  @keyframes ui-line2 { 0%, 28% { transform: scaleX(0) } 48%, 90% { transform: scaleX(1) } 97%, 100% { transform: scaleX(0) } }
+  .kw-ui__bal--down i { animation: ui-baldown 6s var(--kw-ease) infinite; }
+  @keyframes ui-baldown { 0%, 40% { transform: scaleX(.8) } 50%, 92% { transform: scaleX(.71) } 100% { transform: scaleX(.8) } }
+  .kw-ui__code i { animation: ui-line2 6s var(--kw-ease) infinite; }
+  .kw-ui__code .c2 { animation-delay: .2s; } .kw-ui__code .c3 { animation-delay: .4s; } .kw-ui__code .c4 { animation-delay: .6s; } .kw-ui__code .c5 { animation-delay: .8s; }
+  .kw-ui__wave i { animation: ui-wave 1.2s var(--kw-ease-io) infinite alternate; animation-delay: calc(var(--k) * -0.17s); }
+  @keyframes ui-wave { from { transform: scaleY(.2) } to { transform: scaleY(.95) } }
+  .kw-ui__frames i { animation: ui-frame 2.4s steps(1) infinite; }
+  .kw-ui__frames i:nth-child(2) { animation-delay: .6s; } .kw-ui__frames i:nth-child(3) { animation-delay: 1.2s; } .kw-ui__frames i:nth-child(4) { animation-delay: 1.8s; }
+  @keyframes ui-frame { 0%, 24% { opacity: 1; box-shadow: inset 0 0 0 1px #8ea2ff } 25%, 100% { opacity: .55; box-shadow: none } }
+}
+
+
+
+
+/* ---------- workspace door tiles: new icons, no background picture ---------- */
+[class*="__doorGhost"] { display: none !important; }
+[class*="__doorIcon"].kw-ic-on {
+  width: 44px !important; height: 44px !important; border-radius: 12px !important; color: #eef1ff !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  background: radial-gradient(120% 120% at 25% 0%, rgba(110, 134, 255, .32) 0%, rgba(34, 64, 213, .1) 55%, rgba(0, 0, 0, 0) 100%), #15161b !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 8px 18px -10px rgba(0, 0, 0, .9) !important;
+  transition: background .3s var(--kw-ease), border-color .3s var(--kw-ease);
+}
+[class*="__doorIcon"].kw-ic-on > svg:not(.kw-ic) { display: none !important; }
+.kw-ic { width: 24px; height: 24px; display: block; }
+.kw-ic .kw-ic__fill { fill: #6e86ff; opacity: .55; }
+[class*="__doorTile"]:hover [class*="__doorIcon"].kw-ic-on { border-color: rgba(142, 162, 255, .45) !important; }
+
+/* ---------- frontend-design pass ---------- */
+/* One bold thing per page: the hero headline keeps the dotted display face. Section headings
+   no longer switch one word or line into it ("making?", "crypto", "Pay less."), which read as
+   the generated-page accent. */
+.engine-heading em, .footer__cta h2 em, .ascian-section h2 em { font-family: inherit !important; font-style: normal !important; font-weight: inherit !important; letter-spacing: inherit !important; color: inherit !important; }
+/* Labels in sentence case, untracked: all-caps tracked labels were on every block. */
+.ascian-card__kicker, .token-card__kicker, .job-panel__tag, .catalog-row__type, .catalog-live, .savings__label,
+.catalog-rail__group h2, .price-head span, .token-spec li > span, .token-stats dt, dl dt,
+.ChatWorkspace-module__lY2uzG__railLabel, .ChatWorkspace-module__lY2uzG__historyLabel, .button small,
+.kw-ui__head em { text-transform: none !important; letter-spacing: 0 !important; }
+/* The workspace's ">_ EVERY MODEL · ONE BALANCE" line above its heading says nothing the heading doesn't. */
+.ChatWorkspace-module__lY2uzG__welcomeMark { display: none !important; }
+.ascian-engine__primary h3 { font-family: var(--font-body) !important; font-weight: 600 !important; letter-spacing: -.02em !important; }
+
+/* header GitHub / X buttons (site.js) */
+.hdr-social{display:inline-flex;align-items:center;gap:4px;margin-right:6px}
+.hdr-ico{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;color:#aab3c8;transition:color .15s ease,background-color .15s ease}
+.hdr-ico svg{width:18px;height:18px}
+.hdr-ico:hover{color:#fff;background:rgba(255,255,255,.06)}
+.hdr-ico:focus-visible{outline:2px solid #8ea2ff;outline-offset:2px}
+@media (max-width:720px){.hdr-social{display:none}}
+/* new folded chevron in the wordmark: a touch larger than the old glyph so the fold reads */
+:root .brand span svg{height:.74em}

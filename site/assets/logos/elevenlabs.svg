@@ -1,0 +1,11 @@
+<!-- Flat white mark on transparency.
+     Was a #ffffff rounded tile with the bars knocked out in black, which cannot
+     be recoloured by CSS through an <img>. The tile is gone and the bars carry
+     the colour instead.
+     viewBox is cropped to the bars (x 186-314, y 145-355 in the original 500
+     square, plus padding). Keeping the 500 square would have rendered the mark
+     at about a quarter of the width of its neighbours in the strip. -->
+<svg width="152" height="234" viewBox="174 133 152 234" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M314 355H271V145H314V355Z" fill="#ffffff"/>
+  <path d="M229 355H186V145H229V355Z" fill="#ffffff"/>
+</svg>

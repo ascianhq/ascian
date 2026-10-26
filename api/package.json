@@ -1,0 +1,19 @@
+{
+  "name": "ascian-api",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node test/e2e.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.0",
+    "@noble/hashes": "^1.8.0",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

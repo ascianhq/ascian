@@ -1,0 +1,1919 @@
+# ascian docs
+
+Every AI model, one balance, fully documented. Start with a section, or search.
+
+
+## Three ways in, one balance
+
+- The workspace: Chat, code, images and video in the browser. Sign in with your email and start. No key needed.
+- The CLI: Three commands in a terminal and you are talking to any model, with your key remembered.
+- The API: An OpenAI-compatible endpoint. Point Cursor, Continue, Aider or the OpenAI SDK at it with a base URL and a key.
+
+## Start in four steps
+
+1. Sign in with your email. There is no password. You get a six-digit code by email and enter it. How sign-in works.
+2. Add credits. Send crypto to an address issued for that one deposit. One dollar is 1,000 credits. Adding credits.
+3. Make a request. In the workspace, the CLI or from your own code. Your first request.
+4. Watch what it cost. Every request shows its cost in credits when it finishes, and the wallet lists all of them. What a run costs.
+
+## Where things are
+
+- Workspace: https://ascian.fun/chat
+- Wallet, keys and activity: https://ascian.fun/wallet
+- Model catalog and prices: https://ascian.fun/models
+- API base URL: https://ascian.fun/v1
+- Help: hello@ascian.fun
+
+## What a stack of subscriptions costs
+
+For comparison: the monthly bills ascian replaces. One balance, drawn down only when you run something, against these renewing whether you use them or not.
+
+
+
+> These pages describe what the platform does today. Each one carries the date it was last checked against the code, and anything the platform knows (model ids, prices, deposit assets) is read live rather than typed here.
+
+Source: https://ascian.fun/docs
+
+---
+
+# Create an account and sign in
+
+How do I get an account, and what does signing in look like?
+
+
+An account is an email address. Signing up and signing in are the same act: enter your email, we send a six-digit code, you enter the code. There is no password to choose or remember.
+
+1. Go to the sign-in page. Open https://ascian.fun/signin, or press Start asking anywhere on the site.
+2. Enter your email. We send a code to it. If the address has never been used, the account is created the moment the code is verified.
+3. Enter the code. Six digits. It expires ten minutes after it was sent, and a code only works for the address it was sent to.
+
+## Limits that protect the account
+
+- Five codes per email address per hour. Ask for a sixth and you wait.
+- Five wrong guesses per code, then that code is dead and you request another.
+- A session lasts 30 days. Sign out everywhere in the wallet ends every session at once.
+
+## What we store
+
+Codes and session tokens are stored only as SHA-256 hashes. A copy of the database would not contain a working code or a session anyone could replay. Security has the detail.
+
+## If the code does not arrive
+
+- Check spam. The sender is no-reply@ascian.fun.
+- Wait a minute before requesting another; the newest code is the one that counts.
+- Still nothing after a few tries: email hello@ascian.fun from the address you are trying to use.
+
+Source: https://ascian.fun/docs/sign-in
+
+---
+
+# Add credits
+
+How do I fund my balance, and when does the credit land?
+
+
+You add credit by sending cryptocurrency to an address issued for that one deposit. One dollar is 1,000 credits. The list of assets below is read from the payment processor as it is right now.
+
+1. Open the wallet. https://ascian.fun/wallet, then Add credits.
+2. Choose an asset and an amount. Pick from the list below and enter the dollar amount. The quote shows exactly how much of the asset to send.
+3. Send the exact amount to the address shown. The address is for this deposit only and is good for the countdown shown next to it. Send the quoted amount on the named network, on top of whatever your wallet charges to send it.
+4. Wait for confirmation. Once the processor marks the payment complete, credits appear on your balance and a line appears in your activity. Times vary by network: seconds for fast chains, longer for Bitcoin on-chain.
+
+(The live deposit asset list is rendered here. JSON: /api/deposits/assets)
+
+## Rules worth knowing before you send
+
+- Minimum $5 and maximum $10,000 per deposit.
+- Send the exact amount quoted, in one transaction. A short payment is credited pro rata for what arrived; an overpayment is credited for all of it, up to four times the quote.
+- The rate is fixed when the deposit is created, not when it confirms.
+- Crypto transfers are irreversible. Funds sent as the wrong asset, on the wrong network, or to an old address are usually unrecoverable.
+- Network fees are yours. They are not credited.
+- You are credited for the full amount you paid, at 1,000 credits per dollar. The processor takes about 1% and ascian absorbs it today; ascian adds no fee of its own.
+
+> The full detail, including what happens to a deposit that arrives after its window, is in Deposits.
+
+Source: https://ascian.fun/docs/add-credits
+
+---
+
+# Your first request
+
+How do I run something, in the workspace, the terminal, or from code?
+
+
+Pick whichever fits. All three draw from the same balance and the same catalog.
+
+## In the workspace
+
+Sign in, open https://ascian.fun/chat, choose a model in the picker and type. The price of the turn is shown before you send and the cost is shown when it finishes. The workspace.
+
+## In the terminal
+
+The CLI needs Node 18 or newer and nothing else. It remembers your key and your model.
+
+```bash
+curl -fsSL https://ascian.fun/install.sh | sh
+ascian login
+ascian
+```
+
+```powershell
+irm https://ascian.fun/install.ps1 | iex
+ascian login
+ascian
+```
+
+ascian login asks for a key from your wallet and saves it. ascian on its own opens a conversation. Quote a question to ask once and exit: ascian "what changed in HTTP/3?". The CLI.
+
+## From your own code
+
+Make a key at https://ascian.fun/wallet#api. The base URL is https://ascian.fun/v1 and the shape is the OpenAI chat completions API.
+
+```bash
+export ASCIAN_KEY="ascian_live_..."
+curl https://ascian.fun/v1/chat/completions \
+  -H "Authorization: Bearer $ASCIAN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.6-sol",
+    "messages": [{"role": "user", "content": "Say hello to ascian."}]
+  }'
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="https://ascian.fun/v1", api_key="ascian_live_...")
+
+resp = client.chat.completions.create(
+    model="gpt-5.6-sol",
+    messages=[{"role": "user", "content": "Say hello to ascian."}],
+)
+print(resp.choices[0].message.content)
+```
+
+```javascript
+import OpenAI from "openai";
+
+const client = new OpenAI({ baseURL: "https://ascian.fun/v1", apiKey: "ascian_live_..." });
+
+const resp = await client.chat.completions.create({
+  model: "gpt-5.6-sol",
+  messages: [{ role: "user", content: "Say hello to ascian." }],
+});
+console.log(resp.choices[0].message.content);
+```
+
+The response is the OpenAI shape plus one field of ours, ascian.credits_charged, so your code knows what the call cost without a second request.
+
+```json
+{
+  "id": "chatcmpl-6f1e...",
+  "object": "chat.completion",
+  "model": "gpt-5.6-sol",
+  "choices": [
+    { "index": 0, "message": { "role": "assistant", "content": "Hello, ascian." }, "finish_reason": "stop" }
+  ],
+  "usage": { "prompt_tokens": 12, "completion_tokens": 4, "total_tokens": 16 },
+  "ascian": { "credits_charged": 0.0675 }
+}
+```
+
+## Switch models by changing one string
+
+Every chat model in the catalog works with the same request. Ids are exact, so copy them from the catalog rather than guessing: claude-sonnet-5, gemini-3.7-flash, deepseek/deepseek-v4.1-flash.
+
+- Chat completions, in full: Every field we read, every limit, every error.
+- Streaming: Tokens as they are generated, and what a cancelled stream costs.
+- Tools: Cursor, Continue, Aider, the OpenAI SDKs, LangChain.
+
+Source: https://ascian.fun/docs/first-request
+
+---
+
+# Frequently asked
+
+The short answers, with links to the long ones.
+
+
+## Do I need a subscription?
+
+No. You fund one balance and pay for the model usage you actually consume. Nothing recurs, nothing renews, nothing needs cancelling.
+
+## How do I pay?
+
+With cryptocurrency, sent to an address issued for that one deposit. One dollar is 1,000 credits. The assets accepted are listed live on Add credits.
+
+## How much does it cost?
+
+Each request is metered at the model's own rate. A short chat on a cheap model costs a fraction of a credit; a video clip costs hundreds. Prices are on Models and the cost of every request is shown when it finishes. There is no platform fee in the first version.
+
+## Do my credits expire?
+
+No. Credit does not expire. It buys model usage only, earns nothing, and cannot be withdrawn or converted back. Refunds and withdrawals.
+
+## Which models can I use?
+
+Hundreds, across chat, code, images and video, from OpenAI, Anthropic, Google, DeepSeek, xAI, Qwen, Meta and more. The catalog is live and says which run on the API and which run in the workspace.
+
+## Is my data private?
+
+Nothing you type trains a model. Chats are kept on your account so they follow you between devices; you can delete them at any time. Images and clips you make are kept in your library so you can get them back. Privacy.
+
+## Can I build on it?
+
+Yes. The API is OpenAI-compatible: change a base URL and a key and existing code works. The CLI is the fastest way to try it.
+
+## Is there a token?
+
+Yes, ASCIAN. It is access, not a revenue claim: holding it lowers the ascian fee and unlocks access bands. The token.
+
+## Where do I get help?
+
+hello@ascian.fun, or the channels on Community.
+
+Source: https://ascian.fun/docs/faq
+
+---
+
+# Chat
+
+How does the workspace work, and what are its limits?
+
+
+The workspace is the browser side of ascian: https://ascian.fun/chat. Sign in, pick a model, type. No key, no setup. Every model in the picker draws on the balance you funded.
+
+## How a turn works
+
+1. Pick a model. The picker shows what one typical turn costs on each model (1,000 tokens in, 500 out), cheapest first. Switching keeps the conversation, so you can hand the same question to a second model.
+2. Type and send. The reply streams in. Stop it early and you pay for what was generated, nothing after.
+3. See the cost. Each reply shows the credits it cost. The wallet lists every turn.
+
+## Limits
+
+- Messages kept: The last 20 are sent to the model, oldest dropped first to fit
+- Message size: 48,000 characters
+- Conversation size: 120,000 characters sent per turn; older turns fall off, the chat continues
+- Reply length: Up to 8,192 tokens per turn, thinking included; less if the balance cannot cover it
+- Pace: 20 turns per minute
+- Deadline: 4 minutes per reply
+
+The API allows longer replies and conversations. When you outgrow the workspace, the CLI is the next step and takes a minute to set up.
+
+## Speak instead of typing, and hear the reply
+
+A mic sits beside the paperclip in the composer. Tap it to listen and tap again to stop; sending stops it too. What you say is appended after what you typed, with the words still being guessed shown as they come and settled as you go, and a pause to think does not end the session. Four bars beside the mic move with your voice while it listens. Every finished reply has a read-aloud link that reads it in your browser's own voice: code is skipped with a word, links are read as their text, and one reading runs at a time.
+
+Both run inside your browser. Chrome, Edge and Safari carry the speech engine, so the buttons appear there and stay hidden in Firefox. No audio is sent to ascian, nothing is recorded, and neither costs credits. The first tap asks for the microphone; if you have said no, the note tells you where the switch is on your platform.
+
+## What stays and what does not
+
+Your chats are kept on your account, so they follow you across devices and are there when you come back. Each one is named by what it asks; the Chats tab of your account lists them and lets you download or delete any of them. Nobody at ascian reads them and nothing you type trains a model; the privacy page says exactly what is stored. Images and video clips you make are kept in your library.
+
+## If a model refuses to answer
+
+A reply with no content is treated as an error, not an answer, and is not charged. A model whose provider is not currently serving it says so before the turn runs. Listed but refused. Every error in the workspace ends with a code; the list says what each one means.
+
+Source: https://ascian.fun/docs/workspace/chat
+
+---
+
+# Error codes
+
+What does the code at the end of a workspace error mean?
+
+
+Every error the workspace shows ends with a short code, like (code W513). Quote it to support and they know exactly which path failed without asking you to describe it. The groups: 1xx the request, 2xx the model picked, 3xx credits, 4xx the provider, 5xx the answer, 0xx the browser.
+
+> Whenever the message says you were not charged, the reservation for that turn was released before the message was written, and the wallet shows nothing for it.
+
+| Code | What you see | What it means | What to do |
+| --- | --- | --- | --- |
+| W101 | Please sign in to use the workspace. | The session has ended or was never started. | Sign in again. |
+| W102 | That run could not be found. | A reloaded page asked for an answer that finished more than fifteen minutes ago. | Send the message again. |
+| W103 | Model access is switched off on this server right now. | The server has no gateway key. This should never show on ascian.fun. | Tell support. |
+| W104 | Type a message first. | The request carried no text and no image. | Type something. |
+| W105 | That request carries a message type the workspace does not accept. | Something other than the workspace sent a system or tool message. | Use the workspace, or the API for system prompts. |
+| W106 | That message is too long. | One message is over 48,000 characters. | Split it, or attach it as a file once files are supported. |
+| W107 | That message is too long to send even on its own. | The newest message alone exceeds what one turn can carry. | Start a new chat with the part that matters. |
+| W108 | At most 8 images in one conversation. | The conversation already carries the image limit. | Start a new chat to send more. |
+| W201 | That model is not in the catalogue right now. | The picked id is no longer listed by the gateway. | Pick another model. |
+| W202 | That model does not answer chat. | A video or audio model was sent to chat. | Pick a chat model, or use the right door. |
+| W203 | That model cannot see pictures. | An image was attached for a text-only model. | Pick a model marked for image input, or remove the picture. |
+| W204 | That model's provider is not serving it at the moment. | The model is on our known-dead list. You were not charged. | Pick another model. |
+| W205 | That model has no price yet. | The gateway lists it with no rate, so it cannot be billed. | Pick another model. |
+| W301 | Not enough credits for this turn. | The reservation for this turn is more than the balance. | Top up, or pick a cheaper model. |
+| W411 | We could not reach the model provider. | Our gateway did not answer. You were not charged. | Try again in a moment. If it persists, support checks the gateway. |
+| W412 | The model provider turned this request down. | The gateway returned a 4xx or 5xx. You were not charged. | Try again, or pick another model. Support can see the status in the logs. |
+| W413 | The model provider is busy. | The gateway rate-limited us. You were not charged. | Try again in a few seconds. |
+| W414 | Model access is paused for a moment on our side. | Our gateway account needs topping up. Nobody is charged. | Support tops up the gateway. Try again shortly. |
+| W511 | The connection to the model dropped before it answered. | The stream died before the first token. You were not charged. | Try again. |
+| W512 | The model answered in a form we could not read. | A 200 with an unreadable body. It was billed upstream, so the reservation was charged. | Tell support the code; the turn is refunded by hand. |
+| W513 | That model did not answer this time. | The provider finished with no content. You were not charged. | Try again, or pick another model. |
+| W514 | That model spent its whole output budget thinking. | A reasoning model used all 8,192 tokens on thinking. You were not charged. | Try again, shorten the prompt, or pick a model that thinks less. |
+| W515 | The model's provider reported an error. | An error arrived inside the stream. You were not charged. | Try again, or pick another model. Support can see the provider's text in the logs. |
+| W001 | The connection dropped before the reply arrived. | The browser lost its connection to ascian.fun mid-turn. | Check the connection and try again. |
+| W002 | The model did not return a response. | The server's answer carried neither text nor an error. | Try again. If it repeats, tell support. |
+| W601 | Images must be sent as a data URL. | The attachment reached the server in a shape it does not accept. | Attach the picture again from the clip button. |
+| W602 | Images must be PNG, JPEG, WebP or GIF. | Another format was attached. | Convert it, or screenshot it. |
+| W603 | An image part needs image_url.url. | An API-style message carried an empty image part. | Use the workspace to attach pictures. |
+| W701 | That image could not be found. | Generated images are kept for 24 hours. | Make it again. |
+| W801 | That render failed. | The video provider gave up on the clip. You were not charged. | Try again, or pick another model. |
+| W802 | That video could not be found. | The clip id is unknown or belongs to another account. | Open it from your library. |
+| W803 | That video is no longer available. | Older clips expire; newer renders are kept on your account. | Render it again. |
+| W804 | Describe the video you want. | The prompt was empty. | Type a description. |
+| W805 | That description is too long. | Video prompts have a short limit. | Shorten it. |
+| W806 | That is not a video model. | A chat model was sent to the Video door. | Pick a video model. |
+| W807 | That model does not take a start frame. | A picture was attached for a text-to-video model. | Remove the image, or pick an image-to-video model. |
+| W808 | That model needs a start frame. | An image-to-video model was sent text only. | Attach a picture. |
+| W809 | No published price for this length and shape. | The gateway prices this model per shape, and this one is missing. | Pick another length or aspect ratio. |
+| W810 | Not enough credits for this video. | The clip's price is more than the balance. | Top up, or pick a shorter clip. |
+| W811 | The video provider would not start that render. | The gateway refused the job. You were not charged. | Try again in a moment. |
+| W812 | That render is already in progress. | A retry was sent while the same clip was rendering. | Wait for it. |
+| W813 | That render could not be found. | A reloaded page asked about a render the server no longer has. | Send it again. |
+
+Source: https://ascian.fun/docs/workspace/error-codes
+
+---
+
+# Make images
+
+Which models make pictures in the workspace, and what do they cost?
+
+
+Some chat models answer with a picture. Pick one of those in the picker, describe what you want, and the image appears in the conversation. There is no separate image tool to learn.
+
+The models that do this are marked in the catalog as chat models whose output includes images: today the three Gemini image models (Nano Banana).
+
+## Cost
+
+A picture is priced by what it actually costs, not by the per-token rate on the card, because most of the tokens are the picture. The picker shows the measured price for the models we have measured (41 to 163 credits) and reserves 200 for any we have not; the charge settles to the real figure. What you are charged when.
+
+## Keeping it
+
+Every picture you make in the workspace is saved to your library with its prompt, model and cost. Download it from there any time.
+
+## Editing and image input
+
+Not yet. Uploading a picture for the model to look at or change is on the roadmap. Today the workspace and the API are text in.
+
+Source: https://ascian.fun/docs/workspace/images
+
+---
+
+# Make video
+
+How do I make a clip, what does it cost, and how long does it take?
+
+
+Video runs in the workspace only. Pick a video model, describe the clip, choose a shape and a length, and the exact price is shown before you start. The API does not have a video endpoint yet.
+
+1. Choose a video model. Kling, Veo, Runway, Seedance, Hailuo and others. The catalog lists them with their per-clip prices.
+2. Choose shape and length. Each model renders a fixed set of aspect ratios (16:9, 9:16, 1:1) and durations (typically 5, 8 or 10 seconds). The picker only offers combinations the model publishes a price for.
+3. See the price, then render. The price is the model's published price for that exact shape and length, in credits. Nothing is estimated.
+4. Wait. Renders take from under a minute to several minutes. The clip shows its first frame while it works, and you can leave the page.
+
+## Billing
+
+- The price is reserved when the render starts and held for up to 20 minutes.
+- A render that fails releases the hold. You are charged only for a clip that completes.
+- Ten renders per minute per account.
+- The description is limited to 2,000 characters.
+
+## Keeping the clip
+
+Finished clips are saved to your library and can be downloaded as MP4. They are served from ascian, to you only.
+
+## Errors you may see
+
+| Message | Meaning |
+| --- | --- |
+| That model renders X, Y second clips. Ask for one of those. | The length you asked for is not one the model offers. |
+| That model has no published price for this length and shape. | The combination cannot be billed, so it is refused before anything runs. |
+| Not enough credits for this video. | The balance cannot cover the price. The message says how much is needed. |
+| The gateway would not start that render. Nothing was charged. | The provider refused. Try again or change the prompt. |
+| That render is already in progress. | The same request was sent twice. |
+
+Source: https://ascian.fun/docs/workspace/video
+
+---
+
+# Your library
+
+Where do the things I make go, and who can see them?
+
+
+Everything you make in the workspace that is not text is kept: images and video clips, each with its prompt, the model that made it, the credits it cost and when. Conversations are not kept; Chat explains why.
+
+Until ascian has copied a finished clip, and for up to 24 hours regardless, it also exists at a temporary address on the model gateway. Your library is yours to see and nobody else's: nothing in it is published, browsed or used for anything but showing it back to you. Ask and it is deleted. Privacy.
+
+- Images shown: Your latest 100
+- Clips shown: Your latest 60
+- Who can see them: You, signed in. Files are served from ascian and are not public URLs.
+- Download: Every item has a download that saves the original file.
+
+Pictures made through the API are not saved here; download them from the response. Images from chat.
+
+Source: https://ascian.fun/docs/workspace/library
+
+---
+
+# Switching models
+
+How do I compare models on the same question, and what does the picker show?
+
+
+The point of one balance is that trying another model costs nothing extra. In the workspace the model is a picker above the conversation; switch it and the next turn goes to the new model with the same history.
+
+## What the picker shows
+
+- The name, the provider, and what one typical turn costs (1,000 tokens in, 500 out), so a cheap model and an expensive one are comparable at a glance.
+- Sorted cheapest first. The popular models are marked.
+- Only models that can run. Video models are in the video door, audio and embedding models are not offered, and a model whose provider is refusing to serve it is left out.
+
+## A sensible default set
+
+| Want | Try |
+| --- | --- |
+| A strong all-rounder | gpt-5.6-sol |
+| Careful long writing and code | claude-sonnet-5 |
+| Fast and cheap for everyday questions | gemini-3.7-flash |
+| Cheapest capable reasoning | deepseek/deepseek-v4.1-flash |
+| A picture | google/gemini-3.1-flash-image |
+
+The catalog has the full list with live prices and context sizes.
+
+Source: https://ascian.fun/docs/workspace/models
+
+---
+
+# What a run costs
+
+How is the price of a turn, a picture or a clip worked out?
+
+
+One dollar is 1,000 credits. Each request is priced from what it actually cost upstream. There is no ascian fee on usage today, so the credits you see charged are the model's own price.
+
+| Kind | Priced by | Shown |
+| --- | --- | --- |
+| Chat reply | Tokens in at the model's input rate, tokens out at its output rate | Before: the typical-turn price in the picker. After: the exact credits on the reply. |
+| Picture | The measured cost of a picture on that model | Before: the measured floor. After: the real figure. |
+| Video clip | The model's published price for that shape and length | Before, exactly. A clip has one price. |
+
+## Why the picker price and the charge differ
+
+The picker prices a typical turn so models are comparable. Your actual turn has its own token count, and the model's reply length is not known until it finishes. The charge is always the real number, and it is what you see on the reply and in the wallet.
+
+## Reserved, then settled
+
+When you send, the worst case is reserved from your balance so you can never start something you cannot afford. When the reply finishes, the reservation becomes the real charge. The wallet shows both your balance and what is available after reservations. Holds and settlement.
+
+## Thinking models
+
+On a model that reasons before it answers, much of a short reply can be reasoning you never see. It is billed like any other output token. The picker's per-turn price does not include it, so expect these models to run above their listed turn price.
+
+Source: https://ascian.fun/docs/workspace/costs
+
+---
+
+# Wallet, keys and activity
+
+What is in the wallet, and what does each number mean?
+
+
+https://ascian.fun/wallet is the account page: your balance, what you have spent it on, how to add more, and your API keys.
+
+## The numbers
+
+- Balance: Credits on the account
+- Available: Balance minus anything reserved by a request still running. This is what you can spend right now.
+- Usage value: What the balance is worth as model usage, in dollars. Deliberately not a cash value: credits cannot be withdrawn.
+
+## Activity
+
+The last 50 entries on your ledger: deposits, every chat turn, every picture, every clip, with the model, the credits and the time. API calls appear here too, with the key that made them. There is no usage endpoint on the API; ascian.credits_charged on each response is the per-call figure.
+
+## Add credits
+
+Pick an asset and an amount, send the exact quote to the address shown. Add credits.
+
+## API keys
+
+Make, cap and revoke keys. A key is shown once. Authentication and keys.
+
+## Signing out
+
+Sign out ends this browser's session. Sign out everywhere ends every session on the account, which is the thing to press if a device is lost.
+
+Source: https://ascian.fun/docs/workspace/wallet
+
+---
+
+# The API
+
+What the API is, where it lives, and what is on it.
+
+
+The ascian API is the OpenAI chat completions API with a different base URL and key. Anything that speaks that shape works: Cursor, Continue, Aider, the OpenAI SDKs, LangChain, or a curl command. The surface is deliberately small.
+
+- Base URL: https://ascian.fun/v1
+- Auth: Authorization: Bearer ascian_live_...
+- Format: JSON in, JSON out; server-sent events when stream: true
+- Money: Credits. One dollar is 1,000 credits. Every response says what it cost.
+
+## The three endpoints
+
+| Method | Path | What it does |
+| --- | --- | --- |
+| GET | /v1 | Connection check. Your balance and the key in use. Detail |
+| GET | /v1/models | Every chat model you can call, in the shape the OpenAI SDKs expect. Detail |
+| POST | /v1/chat/completions | The one that does the work. Streaming and non-streaming. Detail |
+
+## What is not on it
+
+Video runs in the workspace on its own endpoint and is not on the API yet. Audio and embedding models are refused. There are no images, files, assistants, fine-tuning or responses endpoints. Pictures come from chat models that answer with an image, in message.images. The full list, with where each item sits on the roadmap, is on What is not on the API yet.
+
+## Where it differs from OpenAI
+
+The request and response shapes match. There are four deliberate differences, and Differences from OpenAI lists them. The one you will use: ascian.credits_charged on every response.
+
+## Browsers
+
+The API sends no CORS headers, so a web page on another origin cannot call it directly, and it should not: a key in front-end code is a key anyone can spend. Call it from your server, a CLI, a desktop tool or a script.
+
+- Get a key: Made in the wallet, shown once, with an optional daily cap.
+- Your first request: curl, Python and Node, ready to paste.
+- Errors: Every status we return, and whether it charged you.
+
+Source: https://ascian.fun/docs/api
+
+---
+
+# Authentication and keys
+
+How do I get a key, what can it do, and how do I keep it safe?
+
+
+Every API call carries a key as a bearer token. Keys are made in the wallet and belong to your account, so anything they spend comes off your balance.
+
+```http
+Authorization: Bearer ascian_live_...
+```
+
+## Making a key
+
+1. Open the wallet. https://ascian.fun/wallet#api, signed in.
+2. Name it, optionally cap it. One key per app or machine is a good habit. A daily cap, in credits, bounds what that key can spend in any rolling 24 hours.
+3. Copy it now. The key is shown once. Only a hash is kept, so it cannot be recovered later, only revoked and replaced.
+
+## Facts about keys
+
+- Format: ascian_live_ followed by 32 URL-safe characters
+- Storage: SHA-256 hash only; the plain key exists nowhere after you copy it
+- Active keys: Up to 20 per account
+- Creation rate: 10 per hour
+- Daily cap: Optional, in credits, checked before each request against the worst case that request could cost. Daily caps
+- Scopes: None. Every key can do everything the API does.
+- Expiry: None. A key works until you revoke it.
+- Revoking: Immediate. The next request with that key fails with 401. Its past usage stays in your activity.
+
+## When a key is wrong
+
+```json
+{ "error": { "message": "Missing or invalid API key.", "type": "authentication_error", "param": null, "code": null } }
+```
+
+That is the answer for a missing header, a revoked key and a truncated paste alike. Make a new key rather than debugging an old one.
+
+## Keep it like a card number
+
+- Environment variable or a secrets store, never a committed file and never front-end code.
+- Set a daily cap on any key a script uses. A retry loop can spend a balance in minutes in a way nobody typing into a chat box ever will.
+- One key per place. Revoking one then costs you one place, not all of them.
+
+## Test a key
+
+```bash
+curl https://ascian.fun/v1 -H "Authorization: Bearer $ASCIAN_KEY"
+```
+
+That prints your balance and the key in use. Connection check.
+
+Source: https://ascian.fun/docs/api/authentication
+
+---
+
+# Chat completions
+
+Every field we read, every limit we apply, and what comes back.
+
+
+```http
+POST https://ascian.fun/v1/chat/completions
+```
+
+Create a model response for a conversation. The request is the OpenAI shape. This page is precise about which fields we read, because the rest are dropped without a warning.
+
+## Request fields we read
+
+| Field | Type | What it does |
+| --- | --- | --- |
+| model | string | A chat model id from the catalog. Exact match; there are no suffixes or aliases. |
+| messages | array | The conversation. Each item has role (system, user or assistant) and a string content. |
+| max_tokens | integer | Output ceiling, thinking included. Default 4,096, maximum 8,192. Larger values are clamped, not rejected. |
+| stream | boolean | true for server-sent events. Streaming. |
+
+> Everything else is dropped silently: temperature, top_p, tools, tool_choice, response_format, stop, n, seed, plugins. A request that sends them succeeds; they just have no effect. Tool calling and structured output are on the roadmap.
+
+## Messages
+
+- Roles other than system, user and assistant return 400 Unsupported message role.
+- content must be a string. Array content parts (image inputs) are skipped, so a message that is only parts is dropped. Image input is on the roadmap.
+- Only the last 40 messages are sent to the model. Trim on your side if you want control over what is kept.
+- More than 120,000 characters in total returns 400 The conversation is too long.
+- No usable messages returns 400 No usable messages were provided.
+
+## Example
+
+```bash
+curl https://ascian.fun/v1/chat/completions \
+  -H "Authorization: Bearer $ASCIAN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 300,
+    "messages": [
+      {"role": "system", "content": "Answer in one sentence."},
+      {"role": "user", "content": "Why is the sky blue?"}
+    ]
+  }'
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="https://ascian.fun/v1", api_key="ascian_live_...")
+resp = client.chat.completions.create(
+    model="claude-sonnet-5",
+    max_tokens=300,
+    messages=[
+        {"role": "system", "content": "Answer in one sentence."},
+        {"role": "user", "content": "Why is the sky blue?"},
+    ],
+)
+print(resp.choices[0].message.content)
+print(resp.model_extra["ascian"]["credits_charged"])
+```
+
+```javascript
+import OpenAI from "openai";
+
+const client = new OpenAI({ baseURL: "https://ascian.fun/v1", apiKey: "ascian_live_..." });
+const resp = await client.chat.completions.create({
+  model: "claude-sonnet-5",
+  max_tokens: 300,
+  messages: [
+    { role: "system", content: "Answer in one sentence." },
+    { role: "user", content: "Why is the sky blue?" },
+  ],
+});
+console.log(resp.choices[0].message.content, resp.ascian.credits_charged);
+```
+
+## Response
+
+```json
+{
+  "id": "chatcmpl-9c2b...",
+  "object": "chat.completion",
+  "created": 1789516800,
+  "model": "claude-sonnet-5",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "Sunlight scatters off air molecules, and blue scatters most." },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 21,
+    "completion_tokens": 14,
+    "total_tokens": 35,
+    "completion_tokens_details": { "reasoning_tokens": 0 }
+  },
+  "ascian": { "credits_charged": 0.192 }
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| choices[0].message.content | The reply. Always one choice. |
+| choices[0].message.images | Present only when the model answered with a picture. Images from chat. |
+| usage.completion_tokens_details.reasoning_tokens | On a thinking model, output tokens you never see. They are billed like any other output token. |
+| ascian.credits_charged | What the call cost, in credits, to four decimal places. Additive: clients that do not know it ignore it. |
+
+## How the cost is worked out
+
+Before the call, credits are reserved for the worst case: your estimated input tokens at the model's input rate, plus max_tokens at its output rate. When the model finishes, the reservation is settled to the real cost, using the gateway's own figure for the call. Nothing else is added: there is no platform fee in the first version. Holds and settlement.
+
+## Limits
+
+- Requests: 120 per minute per IP address
+- Body size: 256 KB
+- Output: max_tokens up to 8,192; default 4,096
+- Deadline: 120 seconds upstream. Past it you get 504 and the reservation is charged, because the model did run. Errors
+
+Source: https://ascian.fun/docs/api/chat-completions
+
+---
+
+# Streaming
+
+How do I get tokens as they are generated, and what does stopping early cost?
+
+
+Send "stream": true and the response is a standard server-sent event stream, the same frames your client already parses. The proxy in front of the API does not buffer, so the first token arrives when the model produces it.
+
+```bash
+curl -N https://ascian.fun/v1/chat/completions \
+  -H "Authorization: Bearer $ASCIAN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-5.6-sol","stream":true,"messages":[{"role":"user","content":"Write a haiku about the sea."}]}'
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="https://ascian.fun/v1", api_key="ascian_live_...")
+stream = client.chat.completions.create(
+    model="gpt-5.6-sol",
+    messages=[{"role": "user", "content": "Write a haiku about the sea."}],
+    stream=True,
+)
+for chunk in stream:
+    delta = chunk.choices[0].delta.content if chunk.choices else None
+    if delta:
+        print(delta, end="", flush=True)
+    if chunk.usage:
+        print("\ncost:", chunk.model_extra["ascian"]["credits_charged"])
+```
+
+```javascript
+import OpenAI from "openai";
+
+const client = new OpenAI({ baseURL: "https://ascian.fun/v1", apiKey: "ascian_live_..." });
+const stream = await client.chat.completions.create({
+  model: "gpt-5.6-sol",
+  messages: [{ role: "user", content: "Write a haiku about the sea." }],
+  stream: true,
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+  if (chunk.usage) console.log("\ncost:", chunk.ascian.credits_charged);
+}
+```
+
+## What the wire looks like
+
+```text
+: ascian
+data: {"id":"chatcmpl-9c2b...","object":"chat.completion.chunk","created":1789516800,"model":"gpt-5.6-sol","choices":[{"index":0,"delta":{"role":"assistant","content":"Salt"},"finish_reason":null}]}
+data: {"id":"chatcmpl-9c2b...","object":"chat.completion.chunk","created":1789516800,"model":"gpt-5.6-sol","choices":[{"index":0,"delta":{"content":" wind"},"finish_reason":null}]}
+...
+data: {"id":"chatcmpl-9c2b...","object":"chat.completion.chunk","created":1789516800,"model":"gpt-5.6-sol","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: {"id":"chatcmpl-9c2b...","object":"chat.completion.chunk","created":1789516800,"model":"gpt-5.6-sol","choices":[],"usage":{"prompt_tokens":14,"completion_tokens":19,"total_tokens":33},"ascian":{"credits_charged":0.23}}
+data: [DONE]
+```
+
+- Lines starting with : are keepalive comments. Ignore them.
+- Frames are re-encoded to the OpenAI chunk shape. Provider-specific fields and reasoning deltas are not passed through.
+- The last data frame before [DONE] carries usage and ascian.credits_charged.
+- Pictures from image-capable chat models arrive as delta.images. Images from chat.
+
+## Stopping early
+
+Close the connection and the upstream call is cancelled immediately. You are charged for what was generated up to that point and nothing after it. The final usage frame will not arrive, so read the cost from your activity or the next GET /v1.
+
+## Headers we send
+
+```http
+Content-Type: text/event-stream; charset=utf-8
+Cache-Control: no-cache, no-transform
+Connection: keep-alive
+X-Accel-Buffering: no
+```
+
+Source: https://ascian.fun/docs/api/streaming
+
+---
+
+# Images from chat
+
+How do I generate a picture, and where does it come back?
+
+
+There is no images endpoint. Some chat models answer with a picture, and on ascian those pictures come back inside the chat completion. Ask in words, get an image URL.
+
+The models that do this are the chat models whose output includes image in the catalog: today the three Gemini image models (the ones the internet calls Nano Banana). The GPT image models are listed upstream but on the refused list, and catalog entries of type image that are not chat models are refused with 404.
+
+```bash
+curl https://ascian.fun/v1/chat/completions \
+  -H "Authorization: Bearer $ASCIAN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "google/gemini-3.1-flash-image",
+    "messages": [{"role": "user", "content": "A red fox in a snowy forest, cinematic light."}]
+  }'
+```
+
+```python
+import requests
+
+r = requests.post(
+    "https://ascian.fun/v1/chat/completions",
+    headers={"Authorization": "Bearer ascian_live_..."},
+    json={
+        "model": "google/gemini-3.1-flash-image",
+        "messages": [{"role": "user", "content": "A red fox in a snowy forest, cinematic light."}],
+    },
+).json()
+for image in r["choices"][0]["message"].get("images", []):
+    print(image["image_url"]["url"])
+print("cost", r["ascian"]["credits_charged"])
+```
+
+```json
+{
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "",
+      "images": [{ "type": "image_url", "image_url": { "url": "https://..." } }]
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": { "prompt_tokens": 18, "completion_tokens": 1290, "total_tokens": 1308 },
+  "ascian": { "credits_charged": 83 }
+}
+```
+
+## What a picture costs
+
+These models publish per-token rates that do not describe what a picture costs, because most of the output tokens are the picture. So the reservation uses a measured floor per model (41 to 163 credits on the Gemini image models, 200 for any we have not measured) and the charge is settled to the gateway's real figure. The cost is in ascian.credits_charged as always. What you are charged when.
+
+## Streaming
+
+Works. The picture arrives as delta.images on a chunk. If you want the simple path, do not stream for images: one response, one URL.
+
+## Keeping the picture
+
+Download it. The URL is a temporary address on the model gateway and lives for up to 24 hours. Pictures made in the workspace are kept in your library; pictures made through the API are not.
+
+Source: https://ascian.fun/docs/api/images
+
+---
+
+# List models
+
+What does the models endpoint return, and why is it shorter than the catalog?
+
+
+```http
+GET https://ascian.fun/v1/models
+```
+
+Returns every model you can call on the API, in the shape the OpenAI SDKs expect. A key is required.
+
+```bash
+curl https://ascian.fun/v1/models -H "Authorization: Bearer $ASCIAN_KEY"
+```
+
+```json
+{
+  "object": "list",
+  "data": [
+    { "id": "gpt-5.6-sol", "object": "model", "created": 0, "owned_by": "OpenAI" },
+    { "id": "claude-sonnet-5", "object": "model", "created": 0, "owned_by": "Anthropic" }
+  ]
+}
+```
+
+## What is in the list
+
+- Chat models only. Video, audio and embedding models are not callable here, so they are not listed.
+- Only models with a published rate. A model we cannot bill is not a model we can serve.
+- Not the ids whose provider is currently refusing to serve them. Listed but refused.
+
+## What is not in it
+
+Prices, context length, modalities. For those use the catalog page, which reads the same feed with everything attached, or the public JSON at /api/models, which needs no key.
+
+> There are no query filters on this endpoint. ?type=image and friends are ignored.
+
+Source: https://ascian.fun/docs/api/models
+
+---
+
+# Connection check
+
+How do I confirm a key works and see my balance from a script?
+
+
+```http
+GET https://ascian.fun/v1
+```
+
+One call that says whether the API is up, whether your key is valid, and how many credits are on the account. It answers without a key too, minus the account.
+
+```bash
+curl https://ascian.fun/v1 -H "Authorization: Bearer $ASCIAN_KEY"
+```
+
+```bash
+# curl gets a terminal banner. Any other User-Agent gets JSON:
+curl https://ascian.fun/v1 -A "my-script" -H "Authorization: Bearer $ASCIAN_KEY"
+```
+
+```json
+{
+  "object": "ascian.api",
+  "base_url": "https://ascian.fun/v1",
+  "models": 340,
+  "streaming": true,
+  "authenticated": true,
+  "account": { "email": "you@example.com", "credits": 12480.5 },
+  "endpoints": ["/v1/models", "/v1/chat/completions"],
+  "docs": "https://ascian.fun/docs/api"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| models | How many chat models currently have a rate and can be called |
+| authenticated | Whether the key you sent was accepted |
+| account.credits | Balance in credits. One dollar is 1,000. |
+
+## Why curl gets a banner
+
+When the User-Agent is curl, wget, httpie, PowerShell or fetch, the response is plain text with colour: the email, the key's name and prefix, the balance and what it buys. That is for a person at a terminal. Set any other User-Agent and you get the JSON above.
+
+## Balance after a call
+
+You rarely need this endpoint for that: every completion returns ascian.credits_charged, so a script can keep its own running total and check in here only occasionally.
+
+Source: https://ascian.fun/docs/api/connection-check
+
+---
+
+# Errors, and what each one charged
+
+What does each status mean, and did it cost me anything?
+
+
+Errors use standard HTTP status codes and the OpenAI error envelope. The column that matters most is the last one: some failures happen after the model has already run, and those are charged.
+
+```json
+{ "error": { "message": "Not enough credits. This request needs about 12. Add credits at https://ascian.fun/wallet", "type": "insufficient_quota", "param": null, "code": null } }
+```
+
+## Before the model runs
+
+None of these charge anything. The reservation, if one was made, is released.
+
+| Status | Type | Message | What to do |
+| --- | --- | --- | --- |
+| 400 | invalid_request_error | messages is required and must be a non-empty array. | Send a messages array. |
+| 400 | invalid_request_error | Unsupported message role: X | Use system, user or assistant. |
+| 400 | invalid_request_error | No usable messages were provided. | Send at least one message with string content. |
+| 400 | invalid_request_error | The conversation is too long. | Trim below 120,000 characters. |
+| 400 | invalid_request_error | That model has no published rate and cannot be billed. | Pick a model from the catalog. |
+| 401 | authentication_error | Missing or invalid API key. | Check the header; make a new key if in doubt. |
+| 402 | insufficient_quota | Not enough credits. This request needs about N. ... | Add credits. N is the worst case for this request, so a smaller max_tokens can get it through. |
+| 404 | invalid_request_error | The model 'x' does not exist. | Ids are exact. Copy from the catalog. |
+| 429 | rate_limit_error | This key's daily cap of N credits would be exceeded. ... | Raise the cap in the wallet or wait for the window to roll. |
+| 429 | (plain body) | {"statusCode":429,"error":"Too Many Requests","message":"Rate limit exceeded, retry in 1 minute"} | 120 per minute per IP. This one is not in the OpenAI envelope. Back off and retry. |
+| 503 | api_error | Model access is temporarily unavailable. Nothing was charged. | Retry shortly. |
+| 502 | api_error | The model gateway is unavailable. | Retry with backoff. |
+
+## After the model has run
+
+| Status | Type | Message | Charged? | What to do |
+| --- | --- | --- | --- | --- |
+| 429 | rate_limit_error | The upstream gateway is busy. Retry shortly. | No | Retry after a short delay. |
+| 502 or 400 | api_error | The model gateway rejected the request. | No | 502 when the provider failed, 400 when it refused the request. Check the prompt and the model. |
+| 502 | api_error | The model returned no content. Nothing was charged. | No | A request that returns nothing is an error, not an empty answer. Retry or change the prompt. |
+| 502 | api_error | The gateway sent an unreadable response. It was billed upstream, so the reserved credits were charged. | Yes, the reservation | Do not retry blindly. Check your activity first. |
+| 504 | api_error | The model took longer than the gateway deadline. It was generated and billed upstream, so the reserved credits were charged. | Yes, the reservation | Lower max_tokens or pick a faster model. Do not retry blindly. |
+
+> A retry loop that treats every 5xx as free will double-spend on the two charged cases. Retry 503, 502 with unavailable or rejected, and 429. Log 504 and the unreadable 502 and look before retrying.
+
+## Backoff that behaves
+
+```python
+import time, requests
+
+RETRY = {429, 503}
+
+def call(payload, tries=4):
+    for attempt in range(tries):
+        r = requests.post("https://ascian.fun/v1/chat/completions", json=payload,
+                          headers={"Authorization": "Bearer ascian_live_..."}, timeout=130)
+        if r.status_code == 200:
+            return r.json()
+        body = r.json().get("error", {})
+        charged = "reserved credits were charged" in body.get("message", "")
+        if r.status_code in RETRY or (r.status_code == 502 and not charged):
+            time.sleep(2 ** attempt)
+            continue
+        raise RuntimeError(f"{r.status_code}: {body.get('message')}")
+```
+
+Source: https://ascian.fun/docs/api/errors
+
+---
+
+# Limits and caps
+
+How fast can I go, how big can a request be, and how do I stop a script overspending?
+
+
+| Limit | Value | Where it bites |
+| --- | --- | --- |
+| Requests per minute | 120 per IP address | 429 with no message body change. Back off. |
+| Request body | 256 KB | 413 |
+| Conversation | Last 40 messages; 120,000 characters | Older messages dropped; over the character limit is 400 |
+| Output | max_tokens up to 8,192, default 4,096 | Clamped, never rejected |
+| Upstream deadline | 120 seconds | 504, charged, because the model ran |
+| Active keys | 20 per account; 10 created per hour | 400 from the wallet |
+| Daily cap per key | Optional, in credits, rolling 24 hours | 429 rate_limit_error before the call |
+
+## There is no per-account request limit
+
+The IP limit protects the service. The daily cap protects your balance, and it is the one to set. It is checked against the worst case a request could cost before the request runs, so a capped key cannot go over, even by one request.
+
+## Need more
+
+Higher IP limits for a server that fans out on behalf of many users: email hello@ascian.fun with the address and the shape of the traffic.
+
+Source: https://ascian.fun/docs/api/limits
+
+---
+
+# Differences from OpenAI
+
+What is deliberately different from the OpenAI API, and why?
+
+
+The request and response shapes match, so existing clients work. These are the deliberate differences, and there are only four.
+
+| Difference | Why |
+| --- | --- |
+| ascian.credits_charged on every response and on the final stream chunk | Additive, so clients that do not know about it ignore it. Knowing the cost of a call without a second round trip is most of the point. |
+| 402 when the balance is short | It names how many credits the request needed, so a script can decide whether to top up or back off. |
+| Chat models that answer with a picture | A model that answers chat completions with an image works here, and the picture comes back in message.images. Video runs in the workspace and is not on this API yet. Audio and embedding ids are refused. |
+| No fine-tuning, files, assistants or responses endpoints | Not built. The three endpoints on The API are the whole surface. |
+
+## And the things we quietly ignore
+
+temperature, top_p, tools, tool_choice, response_format, stop, n, seed and plugins are accepted and dropped. Array content parts are skipped. Model id suffixes like :online or :fast are not a feature; they make an unknown id. Chat completions has the full list.
+
+Source: https://ascian.fun/docs/api/differences
+
+---
+
+# Use it with your tools
+
+How do I point Cursor, Continue, Aider, the OpenAI SDK or LangChain at ascian?
+
+
+Two settings. Anything that speaks the OpenAI API works, because the shape is the one it already sends.
+
+- Base URL: https://ascian.fun/v1
+- API key: ascian_live_... from your wallet
+- Model: Any chat id from the catalog
+
+| Tool | How |
+| --- | --- |
+| Cursor | Settings, Models: add an OpenAI key, then set the override base URL. Enter an ascian model id as a custom model. |
+| Continue | In config.json: "provider": "openai", "apiBase": "https://ascian.fun/v1", "apiKey": "ascian_live_...". |
+| Aider | aider --openai-api-base https://ascian.fun/v1 --openai-api-key $ASCIAN_KEY --model openai/claude-sonnet-5 |
+| OpenAI SDK (Python, Node) | Pass base_url / baseURL and api_key / apiKey. Nothing else changes. |
+| LangChain, LlamaIndex | Any OpenAI chat model class that accepts a base URL and key. |
+| Open WebUI and other chat front ends | Add an OpenAI-compatible connection with the base URL and key. The model picker fills from /v1/models. |
+| Your own script | It is HTTP and JSON. curl works. |
+
+> Claude Code, the Anthropic desktop app and other tools that speak the Anthropic Messages API cannot be pointed at ascian: the shape is different. Cursor and Continue can run Claude models through ascian because they speak OpenAI's shape.
+
+## What to expect
+
+- Streaming works everywhere the tool supports it.
+- Tool calling and structured output are not applied yet. A tool that depends on function calls will fall back to plain text. Not on the API yet.
+- Image inputs are dropped. Pasting a screenshot into Cursor sends text only.
+- Every call from every tool is one line in your activity, with its cost.
+
+Source: https://ascian.fun/docs/api/tools
+
+---
+
+# The CLI
+
+How do I talk to any model from a terminal?
+
+
+The terminal client is a single file with no dependencies. It needs Node 18 or newer; node -v tells you what you have. It remembers your key and your model, so you choose once and then type.
+
+## Install
+
+```bash
+curl -fsSL https://ascian.fun/install.sh | sh
+```
+
+```powershell
+irm https://ascian.fun/install.ps1 | iex
+```
+
+The installer is deliberately readable and does two things: fetches one file into ~/.ascian and puts a launcher on your PATH. Run the line for your machine, not both; Windows has no sh.
+
+## Sign in
+
+```bash
+ascian login
+```
+
+Paste a key from https://ascian.fun/wallet#api. It is saved to ~/.ascian/config.json, so this is once per machine. ASCIAN_KEY in the environment overrides it.
+
+## Talk
+
+```bash
+ascian
+> what is a solar eclipse?
+A solar eclipse happens when the Moon passes between Earth and the Sun.
+12 in · 118 out
+> ▌
+```
+
+ascian on its own opens a conversation that remembers what was said until you leave. Answers render as you would want them: bold is bold, lists are lists, code is set apart. Below each answer is what it cost in tokens.
+
+| Command | What it does |
+| --- | --- |
+| /models | List what you can call |
+| /model <id> | Switch model without losing the thread; /model alone shows the one in use |
+| /new | Start a fresh conversation |
+| /balance | Credits remaining |
+| /exit | Leave |
+
+## Ask one thing and leave
+
+```bash
+ascian "what is a solar eclipse?"
+```
+
+The quotes matter. Without them your shell reads ? and * as filename patterns and stops with no matches found before ascian runs. Inside a conversation there is no shell in the way.
+
+## If something does not work
+
+| You see | What happened |
+| --- | --- |
+| command not found: ascian | The installer added a line to your shell config that has not been read yet. Open a new terminal tab, or source ~/.zshrc. |
+| no matches found | Your shell ate the question. Quote it, or run ascian and type it in. |
+| node: command not found | Node is not installed. Get it from nodejs.org, then run the install line again. |
+| That key was rejected | The key was revoked, or only part of it was pasted. Make a new one and run ascian login again. |
+| 402, or not enough credits | Your balance ran out. Add credits and carry on. |
+
+## Pointing it elsewhere
+
+ASCIAN_ORIGIN changes the origin the CLI talks to. It defaults to https://ascian.fun. Useful for staging and for nothing else.
+
+Source: https://ascian.fun/docs/api/cli
+
+---
+
+# Models
+
+Every model on ascian, what it costs, and where it runs.
+
+
+This list is the live catalog, read when the page loads and cached for five minutes. Ids are exact and are what you pass as model. Prices are per million tokens for chat, per picture or per clip for media.
+
+(The live model catalog is rendered here. JSON: /api/models)
+
+## Reading the table
+
+- Runs on: API means POST /v1/chat/completions accepts it. Workspace means the browser can run it. Video is workspace only.
+- Turn: Credits for a typical chat turn: 1,000 tokens in, 500 out. Thinking models run above this because reasoning is billed as output.
+- Picture: The measured credits per image where we have measured it; the reservation otherwise.
+- Clip: The cheapest published shape and length. Longer and larger cost more; the workspace shows the exact price before you render.
+
+Ids that the catalog lists but the provider is not currently serving are left out. Listed but refused explains.
+
+Source: https://ascian.fun/docs/models
+
+---
+
+# Choosing a model
+
+Which model should I use for what?
+
+
+There is no upgrade to buy and no plan to pick, so the honest answer is: try two. A switch costs one string on the API and one click in the workspace, and the same question on a second model is the fastest way to learn which one you like.
+
+| Job | Reach for | Because |
+| --- | --- | --- |
+| Everyday questions, drafts, summaries | gemini-3.7-flash | Fast, cheap, a million tokens of context |
+| Careful writing, editing, code review | claude-sonnet-5 | Strong at long context and following instructions |
+| An all-rounder with tools in mind | gpt-5.6-sol | The closest match if you are moving OpenAI code |
+| Hard reasoning where cost does not matter | claude-fable-5.1 | The most capable model on the catalog today |
+| High volume on a budget | deepseek/deepseek-v4.1-flash | Capable reasoning at a fraction of a credit per turn |
+| A picture | google/gemini-3.1-flash-image | Fast, cheap, works through chat |
+| A short video clip | kling-3.0 or veo3-fast | Smooth motion; the workspace shows the price per shape |
+
+## What the numbers mean
+
+- Input rate is what you pay per million tokens you send, including the conversation history you resend each turn. Long conversations cost input, not output.
+- Output rate is per million tokens the model writes, including reasoning you never see on thinking models.
+- Context is the most the model can hold in one call. Bigger is not better; it is a ceiling.
+
+## Cheap experiments
+
+Set max_tokens low while iterating on a prompt. The reservation and the worst case of a runaway reply both shrink with it.
+
+Source: https://ascian.fun/docs/models/choosing
+
+---
+
+# What is not on the API yet
+
+Which capabilities are missing today, and where are they on the roadmap?
+
+
+One honest line each, so nobody spends an afternoon on a feature that does not exist. Where an item is on the roadmap, it says so.
+
+| Capability | Today | Plan |
+| --- | --- | --- |
+| Video on the API | Workspace only. POST /v1/videos does not exist. | A video endpoint is on the roadmap after the router rebuild. |
+| Audio: speech and transcription | Not available anywhere. Audio ids are refused. | Audio routes are on the back-end roadmap. |
+| Web search | Not built. :online and plugins do nothing. | On the roadmap. |
+| Routing controls | None. :fast, :cheap, :nitro, :floor make an unknown id and return 404. | The new router will expose routing preferences. |
+| Tool and function calling | tools and tool_choice are dropped; the model answers in text. | On the roadmap. |
+| Structured output | response_format is dropped. | With tool calling. |
+| Image input (vision) | Array content parts are dropped. | On the roadmap. |
+| Embeddings | No endpoint; embedding ids are refused. | Under consideration. |
+| Files, assistants, fine-tuning, responses API | Not built. | Not planned. |
+| CORS for browser calls | No CORS headers. | Not planned: a key in a browser is a key anyone can spend. |
+
+The roadmap has the order and the reasoning.
+
+Source: https://ascian.fun/docs/models/not-yet
+
+---
+
+# Listed but refused
+
+Why does a model I can see in the catalog return an error?
+
+
+The upstream catalog lists some ids whose provider is not actually serving them: they answer with an error, or with nothing, or need a route we do not have. Rather than let you find that out with a failed request, ascian keeps a list of those ids and refuses them up front.
+
+- On the API: Those ids are left out of GET /v1/models and return 404 The model 'x' does not exist.
+- In the workspace: Not offered in the picker. If one is requested anyway: That model is listed but its provider is not serving it. Pick another. Nothing was charged.
+- On the catalog page: Not shown.
+
+## Why they are on the list
+
+- The model answers 200 with no content and no cost.
+- The provider returns an error for every request.
+- No provider will serve the id at all.
+- The id does not exist upstream any more.
+- The model needs a private-mode proxy we do not route through.
+- The model is blocked by the provider's data-policy guardrails.
+
+The list is a measured snapshot, re-checked when the catalog changes. If a model you want is missing and you believe it works, tell us and we re-test it.
+
+Source: https://ascian.fun/docs/models/refused
+
+---
+
+# Credits
+
+What is a credit, what is it worth, and what are the rules?
+
+
+- One credit: $0.001. One dollar buys 1,000 credits.
+- What it buys: Model usage, at the model's own rate. Nothing else.
+- Platform fee: None on usage today. A credit buys the same amount of model work it cost ascian. If that changes, the terms page announces it before it applies, and it never applies to credit you have already spent.
+- Processor fee on deposits: Absorbed by ascian today. You are credited for the full amount you paid; the processor's cut, about 1%, is a cost ascian carries. If that changes it is announced on the terms page first. Deposits.
+- Expiry: None. Credit stays until you use it.
+- Withdrawal: None. Credit is prepaid access to model usage and cannot be converted back to crypto or cash.
+- Interest or yield: None. Credit earns nothing.
+
+## Why credits and not dollars
+
+Model prices are small fractions of a cent. A short chat turn on a cheap model costs a few hundredths of a credit, and a number like 0.032 reads better than $0.000032. Everything on the site, in the wallet and in ascian.credits_charged is in credits; the wallet shows the dollar equivalent beside the balance.
+
+## Where a deposit goes
+
+The address is issued by NOWPayments, the payment processor. Your payment lands in ascian's balance there, and from it ascian sends the part that backs your credit on to the model gateway that runs the models. Each dollar you paid buys 1,000 credits; the processor's cut comes out of ascian's side, not yours.
+
+## When a platform fee is introduced
+
+It will be one multiplier on top of upstream cost, shown as such, and holders of the ascian token pay less of it on a published scale. It will never touch the upstream price, and the docs and the terms will say the number.
+
+Source: https://ascian.fun/docs/billing/credits
+
+---
+
+# Deposits
+
+Which assets, which networks, what limits, and what happens in each case?
+
+
+A deposit is one address, one asset, one amount, one countdown. Credits land when the payment processor confirms the payment. The assets below are read from the processor as it is right now; if it is not listed here, we cannot invoice it.
+
+(The live deposit asset list is rendered here. JSON: /api/deposits/assets)
+
+## Limits
+
+- Minimum: $5 per deposit
+- Maximum: $10,000 per deposit
+- Address validity: Where a countdown is shown next to the address, send within it. An address is for one deposit; make a new one rather than reusing it.
+- Rate: Fixed when the deposit is created. Not the rate on the page earlier, not the rate at confirmation.
+
+## What happens when
+
+| Case | What we do |
+| --- | --- |
+| Exact amount arrives | Credited at the quoted dollar value, in full, once the processor marks it complete. |
+| Less than the quote arrives | Credited pro rata for what arrived. A payment far short of the quote may sit as partial until the processor settles it. |
+| More than the quote arrives | Credited for all of it at the invoice rate, up to four times the quote. Send in one transaction. |
+| Arrives after the countdown | May not reach your balance, and we may not be able to recover it. Create a new deposit rather than reusing an old address. |
+| Wrong asset or wrong network | Usually unrecoverable. Neither you nor we can reverse a chain transaction. |
+| Sent to an address not shown in your signed-in wallet | Not ours. Never send to an address someone gave you elsewhere. |
+
+## Fees
+
+Network fees are yours: send the quoted amount on top of what your wallet charges. The processor takes a small percentage for the payment and the conversion, about 1% at the moment; today ascian absorbs it, so $100 sent lands as 100,000 credits. There is no ascian fee on top. If ascian ever stops absorbing the processor's cut, the terms page says so before it applies.
+
+## Timing
+
+The processor confirms when the network does. Fast chains take seconds to a minute. Bitcoin on-chain can take longer at busy times. Your activity shows the deposit as pending until it is credited.
+
+## Privacy
+
+A deposit address is issued for that deposit alone and tied to your account so the credit reaches you and nobody else. We keep the deposit record; we do not need or ask for anything about the wallet you sent from.
+
+Something wrong with a deposit: email hello@ascian.fun with the deposit id from your activity and the transaction hash.
+
+Source: https://ascian.fun/docs/billing/deposits
+
+---
+
+# Holds and settlement
+
+Why is my available balance lower than my balance, and when does it come back?
+
+
+Every request reserves the most it could cost before it runs, then settles to what it actually cost when it finishes. The gap between balance and available is those reservations.
+
+1. Reserve. For a chat turn: estimated input tokens at the input rate plus the output ceiling at the output rate, or the image floor for a picture model. For a clip: the exact published price.
+2. Run. If the reservation cannot be made, the request stops with 402 and nothing runs.
+3. Settle. The reservation becomes the real charge, using the gateway's own cost figure for the call. If the real cost is somehow above the reservation, the charge is clamped to what you have.
+
+## How long a hold lasts
+
+- Workspace chat: Up to 2 minutes
+- API chat completions: Up to 5 minutes
+- Video: Up to 20 minutes
+
+A request that finishes settles immediately. A request that dies without settling is swept within a minute of its hold expiring, and the credits return to available. You never lose credits to a hold.
+
+## Reading it in the wallet
+
+Balance is the ledger. Available is balance minus open holds. If they differ and nothing is running, wait a minute and refresh.
+
+Source: https://ascian.fun/docs/billing/holds
+
+---
+
+# What you are charged when
+
+Which outcomes cost credits, and which do not?
+
+
+The rule is simple: you pay when the model ran. The table is the rule applied to every outcome.
+
+| Outcome | Charged |
+| --- | --- |
+| Reply completed | The real cost of the tokens (or the picture, or the clip) |
+| Stream stopped by you part-way | What was generated up to that point |
+| Reply came back empty | Nothing. An empty reply is an error, not an answer. |
+| Model refused the request (502 rejected) | Nothing |
+| Model access unavailable (503) | Nothing |
+| Too many requests (429) | Nothing |
+| Not enough credits (402) | Nothing. The request never ran. |
+| Model ran but the reply was unreadable (502 unreadable) | The reservation. It was billed upstream. |
+| Model ran past the 120 s deadline (504) | The reservation. It was generated and billed upstream. |
+| Video render failed | Nothing. The hold is released. |
+| Video render completed | The published price shown before you started |
+
+> The two charged failures are rare and both mean the model did the work. Lowering max_tokens shrinks what the reservation can be.
+
+Source: https://ascian.fun/docs/billing/charges
+
+---
+
+# Daily caps
+
+How do I stop a script from spending my whole balance?
+
+
+A daily cap is a number of credits one API key may spend in any rolling 24 hours. Set it when you make the key, or on an existing key in the wallet. It is optional, and it is the one setting every script key should have.
+
+## How it is enforced
+
+- Before each request, the key's spend over the last 24 hours is added to the worst case this request could cost. If that would exceed the cap, the request is refused with 429 rate_limit_error and does not run.
+- Because it checks the worst case, a capped key cannot go over the cap, even by one request.
+- The window rolls: spend from 25 hours ago no longer counts.
+
+```json
+{ "error": { "message": "This key's daily cap of 500 credits would be exceeded. It has spent 488.2 in the last 24 hours.", "type": "rate_limit_error", "param": null, "code": null } }
+```
+
+## What it does not cover
+
+Caps are per key. The workspace has no cap; a person typing cannot run away the way a loop can. There is no account-level cap today.
+
+Source: https://ascian.fun/docs/billing/caps
+
+---
+
+# Refunds and withdrawals
+
+Can I get credits back out, and what if a figure is wrong?
+
+
+- Withdrawing credits: Not possible. Credit is prepaid access to model usage and is never redeemable for money or crypto.
+- Chargebacks: None. Crypto transfers are irreversible, which is part of why there is no card on file.
+- A wrong charge: Email hello@ascian.fun with the activity line. If we charged you for something the model did not deliver, we put it right.
+- A wrong figure on the site: Prices and conversions are indicative and move with the market and the catalog. Send the page URL to hello@ascian.fun and we correct it.
+
+The rules in full are in the terms, summarised on Terms, in short.
+
+Source: https://ascian.fun/docs/billing/refunds
+
+---
+
+# Referrals
+
+What is my @, what does a referral pay, and when?
+
+
+Every account has an @. It is your name on the site and your referral code: anyone who joins through your link is yours, and what they top up pays you, in credits, for as long as they use ascian.
+
+- Your @: A username account's handle is its @ from the start. An email or wallet account picks one on the profile tab of your account: 3 to 32 letters, digits or underscores, no password needed. A handful of words are reserved (ascian, admin, support and the like).
+- Your link: ascian.fun/r/<your @>. It lands on sign-in with your code attached and leaves a cookie for 30 days, so someone who reads about ascian today and signs up next week is still yours. First touch wins: a second referral link does not replace the first.
+- What counts as yours: Any account created while your code is attached, through any door: username, wallet or email. The link is written once, at sign-up, and never rewritten. You cannot refer yourself.
+- Top-ups: 10% of every deposit a referred account makes, in credits, the moment their deposit credits. $50 topped up by someone you referred is 5,000 credits to you. Automatic, once per deposit, and never out of their balance: they are credited in full.
+- Fees: 10% of the platform fee on every request they run, once a platform fee exists. ascian charges no fee today, so nothing accrues yet; the moment a fee is introduced this starts on its own. Accrued per run and paid to your balance hourly as one line, from 1 credit.
+- Ceiling: None. As many people as you bring, for as long as they use ascian.
+- Where to see it: The referral card on your profile: your @, your link, how many joined, and what they have paid you. Each payout is a line in your activity with the reason.
+
+## Credits, not cash
+
+A referral pays model usage on ascian, which is what a credit already is. It is not money, it cannot be withdrawn, and it is not a share of anything: it is a fixed cut of what the people you brought top up and, later, of the fee on what they run. The full rules are in the terms.
+
+## Fair use
+
+- One @ per account, and it is public: it appears on your link and is how people find you.
+- Referring accounts you control yourself, or accounts made to farm the bonus, is abuse; the bonus is reversed and the accounts closed.
+- A refunded or reversed deposit reverses the bonus it paid.
+
+Source: https://ascian.fun/docs/billing/referrals
+
+---
+
+# The ascian token
+
+What ASCIAN is, what holding it does, and what it is not.
+
+Verified against pump.fun's published fees on 2026-10-10.
+
+> Not financial advice, and not an offer. Nothing on these pages is an offer to sell, or a solicitation to buy, any token or security, and it is not investment, financial, legal or tax advice. A token carries risk, including the risk of losing everything you put in. Do your own research and consult a qualified professional before making financial decisions.
+
+ASCIAN is the ascian community token. It is access, not a revenue claim: holding it lowers the ascian fee you pay and unlocks access bands on the platform. It does not pay yield, it does not share revenue, and nobody earns anything by holding it.
+
+- Name: ascian
+- Symbol: ASCIAN
+- Chain: Solana (mainnet-beta)
+- Venue: pump.fun, paired with SOL. Graduates into a permanently locked PumpSwap v4 pool.
+- Supply: 1,000,000,000, fixed, no mint. All of it starts on the bonding curve; the team gets nothing for free.
+- Launch: Not announced yet. The hour is not announced in advance; the links go live here and on X the moment it opens.
+- Company holding: 5.46%, 54,586,381 ASCIAN, bought at launch as the first trade, then locked. Tokenomics
+- Utility: A lower ascian fee and access bands, on one scale. Holding ASCIAN
+
+- Launch: Where and when it goes live, how to buy on pump.fun, what a trade costs, and the addresses once they exist.
+- Tokenomics: Supply, the bonding curve, graduation, trade fees, buybacks, and the company's locked 5.46%.
+- Holding ASCIAN: The fee discount, the five access bands, and how a linked wallet is measured.
+- Token FAQ: Yield, risk, listings, what happens after graduation.
+
+## The one-paragraph version
+
+ascian already runs on crypto: you fund a balance with it and spend it on models. ASCIAN is the piece that lets the people who use ascian most get more out of it. Hold 1% of supply and you pay 25% less of ascian's platform fee; hold 4% and you pay none of it. Along the same scale come day-one access to new models, priority routing, and a direct line into the roadmap. The platform fee is zero in the first version, so today the discount is a commitment about the fee's future, not a change to your bill.
+
+## What it is not
+
+- Not yield, not dividends, not revenue share, not a claim on anything ascian earns.
+- Not required. Every model and every feature on these docs works with no token at all.
+- Not credits. ASCIAN does not fund your balance; credits do, and they are bought with any asset the wallet accepts.
+- Not a pre-sale. Nothing was sold to anyone before the public curve opened. The company bought its 5.46% on the same curve as everyone else, in the first trade.
+
+Official links: our X account and ascian.fun. The token's own record on pump.fun carries only those two, and they cannot be changed after creation. Anything else claiming to be ASCIAN is not.
+
+Source: https://ascian.fun/docs/token
+
+---
+
+# Launch
+
+Where and when ASCIAN goes live, how to buy it, and what a trade costs.
+
+Verified against pump.fun's published fees on 2026-10-10.
+
+> Not financial advice, and not an offer. Nothing on these pages is an offer to sell, or a solicitation to buy, any token or security, and it is not investment, financial, legal or tax advice. A token carries risk, including the risk of losing everything you put in. Do your own research and consult a qualified professional before making financial decisions.
+
+- When: Not announced yet. The hour is not announced in advance. Watch our X account and this page: the buy link appears the moment the curve opens.
+- Where: pump.fun, the launchpad on Solana. The token trades against SOL on a bonding curve until it graduates.
+- Chain: Solana mainnet. Explorer: solscan.io.
+- Addresses: ASCIAN token contract: not deployed yet. When it is, the mint is published here and on our X account, and you verify it on Solscan. This is the only ASCIAN contract; anything else claiming to be one is not ours. The curve and pool addresses are published here and on our X account as they go live.
+
+## How to buy on launch day
+
+1. Get SOL into your wallet. You need SOL for the buy and for network fees. Buy SOL on an exchange and withdraw it to your Phantom wallet, or swap into SOL inside the wallet.
+2. Open the ASCIAN page on pump.fun. Use the link from our X account, and check that the token address on the page matches the one we publish. The name is ascian, the symbol is ASCIAN, the logo is the red chevron.
+3. Buy on the curve. Enter a SOL amount and confirm. The price rises along the curve as more is bought. There are no wallet caps and no buy caps.
+4. Hold it in a wallet you control. Holding is what unlocks the fee discount and the access bands, measured from a wallet you link to your ascian account later. Holding ASCIAN.
+
+## What a trade costs
+
+| Fee | Rate | Where it goes |
+| --- | --- | --- |
+| On the curve | 1.25% | 0.3% to ascian as creator, 0.95% to pump.fun |
+| On PumpSwap after graduation | 1.25% down to 0.3% | Falls step by step as the pool grows, on pump.fun's published schedule |
+| Migration | 0.015 SOL | Once, at graduation, taken from the curve. Nobody pays it per trade |
+
+The creator share accrues in SOL and ascian claims it to the wallet published on this page. It is not shared with holders, and it never will be. The fees fund the company; the token is access.
+
+## Bots at the open
+
+pump.fun has no anti-bot tax, so bots do buy in the first blocks. ascian's own buy is in the same transaction that creates the token, so nothing gets in front of it; everyone after that is in the open. The first seconds are the steepest part of the curve, and waiting through them costs you nothing.
+
+## Graduation
+
+The curve graduates automatically once about 85 SOL has been bought. At that point 800 million ASCIAN has sold on the curve and the remaining 200 million seeds a PumpSwap pool on Solana whose liquidity is locked for good. Nobody, including ascian and pump.fun, can remove it. After graduation ASCIAN trades on PumpSwap like any token.
+
+## On launch day, in order
+
+1. ascian creates the token and makes the first buy in one transaction.
+2. The token and curve addresses are confirmed on Solscan and published on X and here.
+3. The company's 54,586,381 ASCIAN goes into a vesting contract and the link is published.
+4. Trading is open to everyone.
+5. Screener and explorer profiles are claimed over the following hours and days. Token FAQ.
+
+Source: https://ascian.fun/docs/token/launch
+
+---
+
+# Tokenomics
+
+Supply, the curve, fees, buybacks, and the company's locked holding.
+
+Verified against pump.fun's published fees on 2026-10-10.
+
+> Not financial advice, and not an offer. Nothing on these pages is an offer to sell, or a solicitation to buy, any token or security, and it is not investment, financial, legal or tax advice. A token carries risk, including the risk of losing everything you put in. Do your own research and consult a qualified professional before making financial decisions.
+
+- Total supply: 1,000,000,000 ASCIAN, fixed. No mint function, no inflation.
+- At creation: All 1,000,000,000 go onto the pump.fun bonding curve. No team allocation, no advisor allocation, no pre-sale, no KOL round.
+- On the curve: 800,000,000 sell on the curve before graduation.
+- Pool seed: 200,000,000 seed the PumpSwap pool at graduation, with liquidity locked permanently.
+- Company holding: 54,586,381.5419 (5.46%), bought on the curve as the first trade at launch, then locked. Below.
+- Trade fees: 1.25% per trade on the curve: 0.3% to ascian as creator, 0.95% to pump.fun. Paid in SOL.
+- Buybacks: Off at launch. If we ever turn them on, ascian buys ASCIAN on the open market out of its own fee share. pump.fun has no buyback of its own, so every such buy would be our transaction, published.
+- Holder fee-sharing: Never. Fees fund the company; the token is access.
+
+## The company's 5.46%, and the lock
+
+ascian buys 54,586,381.5419 ASCIAN as the first trade at launch, on the same curve as everyone else. pump.fun has no lock of its own, so the whole holding goes into a vesting contract on Solana, in one stream: a 6-month cliff from launch day with nothing released at the cliff, then 22 equal steps of 30 days each. The contract address goes up with the launch announcement.
+
+| Period | Unlocks |
+| --- | --- |
+| Launch day to month 6 | Nothing. A hard lock, 0% at the cliff. |
+| Month 6 onward | About 2,481,199 ASCIAN (0.248% of supply) every 30 days, 22 times |
+| Month 28 | Last release, about two years and four months after launch. |
+
+The lock is a contract on Solana, not a promise on a page, and its address is published with the launch announcement and on Launch. The locked tokens and the company wallet never count toward any holder discount or band.
+
+## The curve, in numbers
+
+- Opens at: Set by the curve. What that is in dollars depends on the SOL price on the day
+- Graduates after: about 85 SOL of buys
+- Caps: None. No per-wallet cap, no per-buy cap.
+- After graduation: A PumpSwap pool on Solana, liquidity locked for good
+
+Dollar figures depend on the SOL price on the day and are illustrative. The SOL figures are the curve's parameters.
+
+## Circulating supply
+
+Total supply minus the 54,586,381 locked by the company, minus whatever is still unsold on the curve until graduation. After graduation, total supply minus the locked amount, which then releases about 2,481,199 every 30 days from the end of the cliff.
+
+## What can change later
+
+Almost nothing. The name, symbol, supply, fees and socials are fixed at creation. The only two things that can change are the wallet that claims ascian's creator fee and whether we buy back at all.
+
+Source: https://ascian.fun/docs/token/tokenomics
+
+---
+
+# Holding ASCIAN
+
+What holding the token does for you, and how it is measured.
+
+Verified against pump.fun's published fees on 2026-10-10.
+
+> Not financial advice, and not an offer. Nothing on these pages is an offer to sell, or a solicitation to buy, any token or security, and it is not investment, financial, legal or tax advice. A token carries risk, including the risk of losing everything you put in. Do your own research and consult a qualified professional before making financial decisions.
+
+Two things, both on one scale, both based on the share of total supply a linked wallet holds. Holding is enough: there is no staking and nothing to lock on your side.
+
+## A lower ascian fee
+
+One rule: for every 1% of supply you hold, 25% off ascian's platform fee, capped at 100% at 4% of supply. It applies to ascian's fee only, never to the upstream model cost, so a 4% holder pays wholesale rather than nothing.
+
+| Held | Share of supply | Off the ascian fee |
+| --- | --- | --- |
+| 1,000,000 | 0.1% | 2.5% |
+| 5,000,000 | 0.5% | 12.5% |
+| 10,000,000 | 1% | 25% |
+| 20,000,000 | 2% | 50% |
+| 40,000,000 | 4% | 100%: fee-free |
+
+> The platform fee is zero in the first version: ascian launches feeless and eats its own costs. When a fee is introduced it will be one published multiplier on top of upstream cost, and this discount scales it. Until then the discount changes nothing on your bill. Credits.
+
+## Access bands
+
+| Share of supply | Held | Unlocks |
+| --- | --- | --- |
+| 0.1% | 1,000,000 | Holder status on the account, early feature flags |
+| 0.5% | 5,000,000 | New models on day one, a 14-day head start over non-holders |
+| 1% | 10,000,000 | Priority routing and higher rate limits |
+| 2% | 20,000,000 | Everything above, plus roadmap input and a direct line |
+| 4% | 40,000,000 | Fee-free |
+
+The scale is continuous for the discount and stepped for the bands. There are no tiers to argue about: the number is your share of supply.
+
+## How it is measured
+
+1. Link one wallet to your account. From the wallet page, sign a message with the wallet that holds your ASCIAN. No funds move and no transaction is sent; the signature proves the wallet is yours. One wallet per account.
+2. The balance is read on chain. Your ASCIAN balance on Solana is read daily, and on demand from your account page. Your share of supply and your discount are shown there, along with the next band.
+3. The discount applies automatically. When a platform fee exists, the discount is applied server-side on every request. The workspace price line shows it.
+
+- The company's locked 54,586,381 and the deployer wallet never count.
+- Only ASCIAN on Solana counts. Wrapped or bridged copies elsewhere do not.
+- Wallet linking and the bands ship after launch. This page will say the date when it is set.
+
+## Later
+
+Two things under consideration once ascian has revenue, neither promised: committed model capacity for active API users, and a buyback rule with a published revenue trigger rather than a discretionary one. If either ships, it will be documented here before it applies.
+
+Source: https://ascian.fun/docs/token/holding
+
+---
+
+# Token FAQ
+
+The questions holders ask, answered plainly.
+
+Verified against pump.fun's published fees on 2026-10-10.
+
+> Not financial advice, and not an offer. Nothing on these pages is an offer to sell, or a solicitation to buy, any token or security, and it is not investment, financial, legal or tax advice. A token carries risk, including the risk of losing everything you put in. Do your own research and consult a qualified professional before making financial decisions.
+
+## Does ASCIAN pay anything?
+
+No. No yield, no dividends, no share of fees or revenue, ever. Holding it lowers the ascian fee you pay and unlocks access. That is the whole utility, on purpose.
+
+## Do I need it to use ascian?
+
+No. Every model, the workspace, the CLI and the API work without it. Credits pay for usage; ASCIAN changes how much of ascian's fee you pay.
+
+## Was there a pre-sale or a private round?
+
+No. All supply started on the public curve. The company bought 5.46% in the first trade at the opening price and locked it for six months, then 22 monthly unlocks. There was no KOL round.
+
+## What is the risk?
+
+- The price can go to zero. There is no floor and no promise about value.
+- pump.fun is a third-party launchpad. Its program is not ours and we cannot change or stop it. ascian's own exposure is its 5.46% buy.
+- Solana has halted block production before, and pump.fun lists thousands of new tokens a day, almost all of which go to zero.
+- Only the addresses we publish on our X account and here are ours. Copies with the same name are not.
+
+## Can I sell?
+
+Yes, on the curve before graduation and on PumpSwap after. Every trade pays the 1.25% curve fee. Selling drops you out of whatever band your remaining balance no longer qualifies for, at the next daily read.
+
+## Where will it be listed?
+
+DexScreener, DEXTools and GeckoTerminal index Solana automatically, so the pair appears on its own and ascian claims the profiles. CoinGecko and CoinMarketCap take a listing form once there is a live market and holders; they can take days. Solscan shows the verified token page.
+
+## What happens at graduation?
+
+Once about 85 SOL has been bought on the curve, the remaining 200 million ASCIAN and the SOL raised seed a PumpSwap pool automatically. That liquidity is locked permanently. Trading continues on PumpSwap, where the fee starts at 1.25% on a small pool and falls toward 0.3% as the market cap grows.
+
+## Is there a buyback?
+
+Not at launch. pump.fun supports one that buys from ascian's fee share and vests the tokens back to the company over five years. If ascian turns it on, the rule and the trigger will be published here first.
+
+## How do I link my wallet?
+
+From the wallet page, after launch, by signing a message. Holding ASCIAN has the steps. Until that ships, just hold; the read is retroactive to whatever you hold on the day you link.
+
+Anything else: hello@ascian.fun.
+
+Source: https://ascian.fun/docs/token/faq
+
+---
+
+# Where to find us
+
+Where do updates, launches and conversations happen?
+
+
+- X: our X account: every announcement lands here first, so it can be quoted. New models, prices, the token, the roadmap.
+- Telegram: The room: an announcement channel plus a forum group for support, daily rituals and token updates. It opens for the launch; the link is posted on X and added here the moment it is live. The contract address is only ever posted there first.
+- fomo.family: After launch, where holders write theses on the ASCIAN coin page and strangers reading them find their way to the site or the room.
+- Support: @asciansupportbot on Telegram: a bug, a sign-in problem, a top-up that has not landed, a token question, the API. Pick a category, describe it, a person replies in the same chat. Deep links: report a bug, a top-up, the token.
+- Email: hello@ascian.fun: partnerships, press, anything the bot is not for
+- Website: https://ascian.fun
+
+Four doors, one loop: the site converts, Telegram retains, fomo.family gives people a place to argue for ascian in public, and X carries what they say back out. There is no rewards programme, no raid group and no paid shilling. Everything is built on people showing real runs and writing real reasons.
+
+## What we post
+
+- New models the day they land on the catalog.
+- Every change to prices, limits or the API, with a note in the changelog.
+- Token news: the address, the lock, the listings. Only from our X account and the Telegram room; anything else claiming to be ASCIAN is not.
+- A weekly usage recap and the roadmap as it moves.
+
+## Reporting something
+
+A wrong figure, a broken page, a model that fails: email hello@ascian.fun with the URL or the activity line. A security issue: email the same address with security in the subject and we will reply directly.
+
+Source: https://ascian.fun/docs/community
+
+---
+
+# Getting help
+
+Something is not working. What do I check, and who do I ask?
+
+
+| Symptom | Check |
+| --- | --- |
+| No sign-in code | Spam folder; wait a minute; five codes per hour per address. Sign in |
+| 402 or not enough credits | Balance versus available in the wallet; a request reserves its worst case first |
+| 401 from the API | The key was revoked or truncated. Make a new one. Keys |
+| 404 model does not exist | Ids are exact; copy from the catalog. Suffixes are not a feature. |
+| A model errors every time | It may be on the refused list. Pick another. |
+| 429 from the API | 120 per minute per IP, or the key's daily cap. Limits |
+| Deposit not credited | Still pending on the network, sent short, or after the countdown. Deposits |
+| CLI says command not found | Open a new terminal tab. The CLI |
+| Charged for a failed request | Two failures are charged because the model ran. What you are charged when |
+
+## When you write to us
+
+Email hello@ascian.fun from the address on the account. Include the time, the model, and for an API call the id from the response or the error message verbatim. For a deposit, the deposit id from your activity and the transaction hash. We do not need your key, ever; if you paste it, revoke it.
+
+Source: https://ascian.fun/docs/community/help
+
+---
+
+# Roadmap
+
+Where ascian is going, in order.
+
+
+Direction, in order, without dates. The order is what we work on next; it moves when people tell us what they need. The aim does not move: every model, one balance, funded from any wallet, at a price that is honest about what it cost.
+
+1. Launch. ASCIAN goes live on Solana, feeless v1 in the open: every major model behind one sign-in, priced at upstream cost, crypto in and credits out with no card and no subscription.
+2. Holder access. Link the wallet that holds ASCIAN to your account and the account knows what you hold. Bands by share of supply: holder status and early feature flags, new models fourteen days early, priority routing and higher limits, roadmap input, and fee-free at the top. Nothing to stake, nothing to claim. Holding is enough.
+3. Router rebuild. Today every request goes through one upstream gateway. We rebuild the routing layer to talk to providers directly: routing tiers so you can ask for fastest or cheapest, reasoning controls on the models that have them, zero-retention routing for work that must not be stored, a real image endpoint, speech in and out. Cheaper per request, faster, ours to control.
+4. Our own payment processor. Deposits without a third party in the middle. Any token on any chain we support lands straight where credits are honoured: no processor fee to absorb, no forwarding step that can fail, more chains and coins added as fast as we can watch them, and settlement we control end to end.
+5. Fees on, and lower than anyone. Only once the router and the processor are ours does a platform fee switch on, because only then is the cost base ours too. The fee will be lower than any comparable platform's and still leave ascian a healthy margin, since nobody else takes a cut in the middle. Holders pay less from the first day, per the published rule.
+6. Built-in skills. Packaged prompts and tool chains for the jobs people do every week, priced below doing them by hand. Each door gets its own set.
+7. Shared memory across models. What you told one model is available to the next, on your account, under your control. Switch from a coder to a writer to an image model without re-explaining who you are or what you are building.
+8. Fusion models. A composite model per person, assembled from your own workload and work type: which models you reach for, what you ask them, what you keep. It routes each task to the model that does it best for you specifically, whether that means the strongest answer or the cheapest one. The most effective model in the catalogue becomes the one built around you.
+9. Credit trading. Crypto to credits, credits back to crypto, and credits into a different crypto. The first tradeable AI credit. This changes what a credit is, from prepaid access to something with an exit, and the terms will say so before it ships.
+10. Buybacks and burns. When revenue supports it, buybacks switch on and burns are considered, both following a rule published before they start. Never fee-sharing, never yield: ASCIAN stays an access token.
+
+## Alongside all of it, without pause
+
+- New models the day they land on the catalog.
+- New currencies as they are supported.
+- Platform fixes every week.
+- UX changes from what people tell us.
+- Every one of them recorded in the changelog.
+
+Have a request: hello@ascian.fun. The roadmap is shaped by what people ask for.
+
+Source: https://ascian.fun/docs/community/roadmap
+
+---
+
+# Changelog
+
+What changed, and when?
+
+Ascian is new. From launch on, every release is listed here, newest first, with what changed in it.
+
+Source: https://ascian.fun/docs/community/changelog
+
+---
+
+# Privacy: what we keep
+
+What ascian stores about me, and what it does not.
+
+
+Short version: we keep what we need to run your account and bill it, and nothing you say to a model.
+
+| Thing | Kept? | Detail |
+| --- | --- | --- |
+| Messages and replies | No | Workspace chats are kept on your account so they follow you between devices; delete them any time from your account page. The API forwards your messages to the model and keeps none of them. |
+| Images and clips you make | Yes | In your library, with the prompt, the model and the cost, served to you only. A temporary copy also exists on the model gateway for up to 24 hours. Ask and it is deleted. |
+| Your email address | Yes | It is the account. |
+| Sign-in codes and sessions | As hashes | SHA-256 only. A copy of the database contains nothing usable. |
+| API keys | As hashes | The plain key exists only in your copy. Name, prefix and cap are kept so the wallet can list it. |
+| Ledger | Yes | Every deposit and every charge: model, tokens, credits, time, and which key made it. This is your activity. |
+| Deposit records | Yes | Address, asset, amounts, status, and the processor's payment id. Not the wallet you sent from. NOWPayments, the processor, issues the address and sees the payment; it does not learn who you are. |
+| Where it runs |  | Vercel for the pages, Railway in the United States for the server and database. Standard request logs (IP address, user agent, URL, time, status) rotate like any web server's. |
+| IP address | In flight | Used for rate limiting and in server logs, which rotate. Not tied to your account's ledger. |
+| Anything for training | No | Nothing you type trains a model, ours or anyone's. |
+
+## Who else sees a request
+
+The model's provider does, because it answers it. Today requests reach providers through a model gateway; the roadmap replaces that with direct routing. Your account identity does not travel with the request. Because there is no table of chat text on ascian's side, a past conversation cannot be sent to you or deleted for you: it was never held. Copies that reached the gateway and the provider follow their retention rules.
+
+The full policy is at /privacy.
+
+Source: https://ascian.fun/docs/trust/privacy
+
+---
+
+# Security: codes, sessions and keys
+
+How are the secrets handled, and what should I do on my side?
+
+
+## On our side
+
+- Sign-in codes are six random digits from a cryptographic generator, hashed together with the email they were sent to, and dead after ten minutes or five wrong guesses. Five codes per address per hour.
+- Sessions are 256-bit random tokens stored as SHA-256 hashes, in a cookie that is HttpOnly, Secure and SameSite=Lax. Thirty days, and Sign out everywhere kills them all.
+- API keys are 32 random URL-safe characters after ascian_live_, stored as a hash, shown once.
+- Money is an append-only ledger. The application role can insert and read; it cannot update or delete a row.
+- Payment webhooks are verified with an HMAC signature in constant time before a single credit moves.
+- Transport is HTTPS only with HSTS, a strict content security policy, and no third-party scripts on the site.
+
+## On your side
+
+- Treat a key like a card number: environment variable, never a repository, never a browser.
+- Cap every key a script uses. Daily caps.
+- One key per place, so revoking one costs you one place.
+- Lost a device: Sign out everywhere in the wallet, then revoke any key that was on it.
+- Only ever send crypto to an address shown in your signed-in wallet.
+
+## Reporting a vulnerability
+
+Email hello@ascian.fun with security in the subject. Say what you found and how to reproduce it; we reply directly and fix first, disclose after.
+
+Source: https://ascian.fun/docs/trust/security
+
+---
+
+# Terms, in short
+
+The rules that matter day to day, in plain words.
+
+
+This is a summary for people who will not read the terms. The terms win if they differ.
+
+- No company name, address or governing law is published yet. The terms say so plainly, and the consumer law of your own country applies. When ascian incorporates, both pages change.
+- Credit buys model usage and nothing else. It does not expire, earns nothing, and is not a claim on ascian for money.
+- A dollar that arrives buys 1,000 credits. The payment processor, NOWPayments, takes about 1% on the way in; ascian charges no fee on usage today and will announce one on the terms page before it applies, never to credit already spent.
+- What you make is yours. ascian claims no rights over model output, keeps your images and clips in your library without promising forever, does not charge for a render that fails, and reruns a lost render rather than paying damages.
+- Every price, conversion and estimate on the site is indicative. Model prices come from the catalog and can change without notice. The charge on a request is the real number.
+- Crypto deposits are final. Send the exact quoted amount, on the named network, within the countdown, to the address in your signed-in wallet. Wrong asset or network is usually unrecoverable.
+- You are responsible for what you ask models to do and for what you do with the output, images and video included. Providers have their own usage policies and a request they refuse is refused here.
+- Keys are yours to protect. Usage on a key is usage on your account.
+- The service is offered as is; we work to keep it up and we tell you when something fails, but we do not promise uptime in the first version. The terms carry a change list, so what moved is on the page.
+- The token is access, not an investment. Nothing about it is advice or an offer.
+
+Questions about the terms: hello@ascian.fun.
+
+Source: https://ascian.fun/docs/trust/terms

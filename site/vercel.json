@@ -1,0 +1,83 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/docs/search-index",
+      "destination": "/docs/search-index.json"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://api-production-ce86.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/v1",
+      "destination": "https://api-production-ce86.up.railway.app/v1"
+    },
+    {
+      "source": "/v1/:path*",
+      "destination": "https://api-production-ce86.up.railway.app/v1/:path*"
+    },
+    {
+      "source": "/r/:code",
+      "destination": "https://api-production-ce86.up.railway.app/r/:code"
+    },
+    {
+      "source": "/wallet",
+      "destination": "/account"
+    },
+    {
+      "source": "/_next/image",
+      "has": [
+        {
+          "type": "query",
+          "key": "url",
+          "value": "(?<u>.*)"
+        }
+      ],
+      "destination": "/:u"
+    },
+    {
+      "source": "/models",
+      "has": [
+        {
+          "type": "query",
+          "key": "task",
+          "value": "(?<t>chat|code|image|video)"
+        }
+      ],
+      "destination": "/models@task=:t"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'none'"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        }
+      ]
+    }
+  ]
+}
